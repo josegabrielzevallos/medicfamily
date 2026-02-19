@@ -1,0 +1,68 @@
+.register {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin-top: 60px;
+}
+
+.register__container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.register__card {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register__title {
+  font-size: 2rem;
+  color: #1abc9c;
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.register__subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+}
+
+.register__error {
+  background: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  border-left: 4px solid #c33;
+}
+
+@media (max-width: 480px) {
+  .register__card {
+    padding: 30px 20px;
+  }
+
+  .register__title {
+    font-size: 1.5rem;
+  }
+}

@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: medicfamily-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: admin123
+      MYSQL_DATABASE: medicfamily
+      MYSQL_USER: medicfamily_user
+      MYSQL_PASSWORD: medicfamily_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - medicfamily_network
+
+  # Django Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: medicfamily-backend
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DB_ENGINE=django.db.backends.mysql
+      - DB_NAME=medicfamily
+      - DB_USER=medicfamily_user
+      - DB_PASSWORD=medicfamily_pass
+      - DB_HOST=db
+      - DB_PORT=3306
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-desarrollo-local-cambiar-en-produccion}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - medicfamily_network
+
+  # React Frontend (Development with hot-reload)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: medicfamily-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - medicfamily_network
+
+volumes:
+  mysql_data:
+
+networks:
+  medicfamily_network:
+    driver: bridge
