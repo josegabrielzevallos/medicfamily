@@ -1,7 +1,9 @@
 from rest_framework import viewsets, status, permissions, filters
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils import timezone
@@ -14,12 +16,59 @@ from .models import (
 from .serializers import (
     SpecialtySerializer, DoctorSerializer, PatientSerializer,
     AvailabilitySerializer, AppointmentSerializer, AppointmentDetailSerializer,
-    VirtualMeetingLinkSerializer, RatingSerializer
+    VirtualMeetingLinkSerializer, RatingSerializer, DoctorRegisterSerializer
 )
 from .permissions import IsDoctor, IsPatient, IsAdminOrReadOnly
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
+def custom_refresh_token(request):
+    """Endpoint personalizado de refresh de tokens con logs"""
+    try:
+        print(f"📝 Refresh token request: {request.data}")
+        
+        refresh = request.data.get('refresh')
+        
+        if not refresh:
+            print(f"❌ Refresh token vacío")
+            return Response(
+                {'detail': 'Refresh token es requerido'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        print(f"✅ Refresh token recibido: {refresh[:30]}...")
+        
+        try:
+            refresh_token = RefreshToken(refresh)
+            new_access = str(refresh_token.access_token)
+            
+            print(f"✅ Token refrescado exitosamente")
+            
+            return Response({
+                'access': new_access,
+                'refresh': refresh,
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"❌ Error al refrescar token: {str(e)}")
+            return Response(
+                {'detail': 'Refresh token inválido o expirado'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+    except Exception as e:
+        print(f"❌ Error general en refresh: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def register(request):
     """Endpoint para registrar nuevos usuarios (paciente o doctor)"""
     try:
@@ -77,6 +126,129 @@ def register(request):
         return Response(
             {'detail': str(e)},
             status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_doctor(request):
+    """Endpoint específico para registrar doctores con información profesional"""
+    print(f"📝 Datos recibidos: {request.data}")
+    serializer = DoctorRegisterSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        try:
+            print("✅ Serializer válido")
+            user = serializer.save()
+            print(f"✅ Usuario creado: {user.username}")
+            
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'role': 'doctor',
+                }
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(f"❌ Error al guardar: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    print(f"❌ Errores en serializer: {serializer.errors}")
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def custom_login(request):
+    """Endpoint personalizado de login que retorna tokens e información del usuario"""
+    try:
+        print(f"📝 Login request: {request.data}")
+        
+        username_or_email = request.data.get('username')
+        password = request.data.get('password')
+        
+        if not username_or_email or not password:
+            return Response(
+                {'detail': 'Username/email y password son requeridos'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Intentar encontrar el usuario por username o email
+        user = None
+        try:
+            # Primero intenta como username
+            user = User.objects.get(username=username_or_email)
+        except User.DoesNotExist:
+            # Si no existe, intenta como email
+            try:
+                user = User.objects.get(email=username_or_email)
+            except User.DoesNotExist:
+                print(f"❌ Usuario no encontrado: {username_or_email}")
+                return Response(
+                    {'detail': 'Usuario o contraseña incorrectos'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+        
+        # Validar password
+        if not user.check_password(password):
+            print(f"❌ Contraseña incorrecta para: {user.username}")
+            return Response(
+                {'detail': 'Usuario o contraseña incorrectos'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        # Validar que el usuario esté activo
+        if not user.is_active:
+            return Response(
+                {'detail': 'Tu cuenta está desactivada'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        print(f"✅ Login exitoso para: {user.username}")
+        
+        # Generar tokens
+        refresh = RefreshToken.for_user(user)
+        
+        # Detectar el role del usuario
+        role = 'patient'
+        try:
+            if Doctor.objects.filter(user=user).exists():
+                role = 'doctor'
+        except:
+            pass
+        
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role': role,
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        print(f"❌ Error en login: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
 

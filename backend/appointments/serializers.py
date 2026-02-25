@@ -133,3 +133,93 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class DoctorRegisterSerializer(serializers.Serializer):
+    """Serializador para registro de doctores con información adicional"""
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, min_length=8)
+    passwordConfirm = serializers.CharField(write_only=True, min_length=8, required=False, allow_blank=True)
+    password2 = serializers.CharField(write_only=True, min_length=8, required=False, allow_blank=True)
+    firstName = serializers.CharField(max_length=150)
+    lastName = serializers.CharField(max_length=150)
+    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    specialty = serializers.CharField(required=True)  # Puede ser string o ID
+    address = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    city = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    bio = serializers.CharField(required=False, allow_blank=True)
+    
+    def validate(self, data):
+        print(f"📝 Validando datos: {data}")
+        
+        # Aceptar passwordConfirm o password2
+        password_confirm = data.get('passwordConfirm') or data.get('password2')
+        
+        # Validar que las contraseñas coincidan
+        if password_confirm and data['password'] != password_confirm:
+            raise serializers.ValidationError({'password': 'Las contraseñas no coinciden'})
+        
+        # Validar que el email no exista
+        if User.objects.filter(email=data['email']).exists():
+            print(f"❌ Error: Email ya existe: {data['email']}")
+            raise serializers.ValidationError({'email': 'El email ya está registrado'})
+        
+        return data
+    
+    def create(self, validated_data):
+        print(f"📝 Creando usuario con datos: {validated_data}")
+        
+        # Generar username automáticamente desde email + timestamp
+        import time
+        base_username = validated_data['email'].split('@')[0]
+        timestamp = int(time.time())
+        username = f"{base_username}_{timestamp}"
+        
+        # Asegurarse de que el username sea único
+        while User.objects.filter(username=username).exists():
+            timestamp = int(time.time() * 1000)
+            username = f"{base_username}_{timestamp}"
+        
+        print(f"✅ Username generado: {username}")
+        
+        # Crear usuario
+        user = User.objects.create_user(
+            username=username,
+            email=validated_data['email'],
+            password=validated_data['password'],
+            first_name=validated_data['firstName'],
+            last_name=validated_data['lastName']
+        )
+        
+        print(f"✅ Usuario creado: {user.username}")
+        
+        # Manejar specialidad como string o ID
+        specialty_input = validated_data.get('specialty')
+        
+        try:
+            # Intentar como ID numérico
+            specialty_id = int(specialty_input) if specialty_input else None
+            specialty = Specialty.objects.get(id=specialty_id) if specialty_id else Specialty.objects.first()
+        except (ValueError, Specialty.DoesNotExist):
+            # Si falla, buscar por nombre
+            specialty, _ = Specialty.objects.get_or_create(
+                name=specialty_input
+            )
+        
+        print(f"✅ Especialidad: {specialty.name if specialty else 'N/A'}")
+        
+        # Usar address si existe, sino usar city
+        address = validated_data.get('address') or validated_data.get('city', '')
+        
+        # Crear perfil del doctor
+        doctor = Doctor.objects.create(
+            user=user,
+            specialty=specialty,
+            phone=validated_data.get('phone', ''),
+            address=address,
+            bio=validated_data.get('bio', ''),
+        )
+        
+        print(f"✅ Doctor profile creado para: {user.username}")
+        
+        return user

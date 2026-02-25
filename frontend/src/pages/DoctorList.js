@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { doctorAPI, specialtyAPI } from '../api/client';
+import CityAutocomplete from '../components/CityAutocomplete';
+import { peruCities } from '../utils/peruCities';
 import './DoctorList.css';
 
 const DoctorList = () => {
@@ -9,6 +11,7 @@ const DoctorList = () => {
   const [filters, setFilters] = useState({
     specialty: '',
     search: '',
+    city: '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -38,6 +41,9 @@ const DoctorList = () => {
       };
       if (filters.specialty) {
         params.specialty = filters.specialty;
+      }
+      if (filters.city) {
+        params.city = filters.city;
       }
       const response = await doctorAPI.getAll(params);
       setDoctors(response.data);
@@ -70,6 +76,16 @@ const DoctorList = () => {
                 <option key={spec.id} value={spec.id}>{spec.name}</option>
               ))}
             </select>
+          </div>
+
+          <div className="filter-group">
+            <label className="filter-label">Ciudad</label>
+            <CityAutocomplete
+              cities={peruCities}
+              value={filters.city}
+              onChange={(city) => setFilters({...filters, city})}
+              placeholder="Ej. Lima, Cusco, Arequipa..."
+            />
           </div>
 
           <div className="filter-group">

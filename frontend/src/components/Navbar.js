@@ -36,11 +36,6 @@ const Navbar = () => {
         {/* Navigation Links */}
         <ul className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
           <li className="navbar-item">
-            <Link to="/" className="navbar-link" onClick={() => setIsMenuOpen(false)}>
-              Inicio
-            </Link>
-          </li>
-          <li className="navbar-item">
             <Link to="/doctors" className="navbar-link" onClick={() => setIsMenuOpen(false)}>
               Encontrar Doctor
             </Link>

@@ -48,8 +48,8 @@ class Doctor(models.Model):
     specialty = models.ForeignKey(Specialty, on_delete=models.SET_NULL, null=True)
     phone = models.CharField(max_length=20)
     address = models.TextField()
-    license_number = models.CharField(max_length=50, unique=True)
-    medical_registration = models.CharField(max_length=50, unique=True)
+    license_number = models.CharField(max_length=50, blank=True, null=True)  # Opcional por ahora
+    medical_registration = models.CharField(max_length=50, blank=True, null=True)  # Opcional por ahora
     bio = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(upload_to='doctor_profiles/', blank=True, null=True)
     is_verified = models.BooleanField(default=False)

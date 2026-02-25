@@ -6,10 +6,12 @@
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+  background: linear-gradient(135deg, rgba(26, 188, 156, 0.85) 0%, rgba(22, 160, 133, 0.85) 100%), 
+              url('../assets/images/background/img_body_up.jpg') center/cover no-repeat;
   color: white;
   padding: 60px 20px;
   text-align: center;
+  position: relative;
 }
 
 .hero-content {
@@ -63,6 +65,8 @@
 .search-container {
   max-width: 1200px;
   margin: 0 auto;
+  overflow: visible;
+  position: relative;
 }
 
 .search-form {
@@ -70,10 +74,11 @@
 }
 
 /* Appointment Type Toggle */
-.appointment-type {
+.appointment-type-btn {
   display: flex;
   gap: 15px;
   justify-content: center;
+
   margin-bottom: 25px;
 }
 
@@ -104,8 +109,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr auto;
   gap: 12px;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
+  padding: 0 10px;
+  overflow: visible;
+  position: relative;
 }
 
 .search-input {
@@ -119,6 +127,29 @@
 .search-input:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos para CityAutocomplete en Home */
+.search-inputs .city-autocomplete {
+  width: 100%;
+}
+
+.search-inputs .city-input-wrapper {
+  border: none;
+  border-radius: 8px;
+  background: white;
+  padding: 0 12px;
+  box-shadow: none;
+}
+
+.search-inputs .city-input-wrapper:focus-within {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+  border: none;
+}
+
+.search-inputs .city-input {
+  padding: 14px 0;
+  font-size: 14px;
 }
 
 .search-btn {
@@ -263,31 +294,63 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
+/* Tablet Responsive */
+@media (max-width: 920px) {
+  .search-inputs {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .search-btn {
+    grid-column: 1 / -1;
+  }
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .hero {
+    padding: 40px 15px;
+  }
+
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 30px;
+    gap: 20px;
+    margin-bottom: 30px;
   }
 
   .hero-text h1 {
-    font-size: 32px;
+    font-size: 28px;
+    margin-bottom: 10px;
   }
 
   .hero-text p {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .doctors-illustration {
-    font-size: 80px;
+    font-size: 70px;
   }
 
   .search-inputs {
     grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0;
+  }
+
+  .search-btn {
+    grid-column: auto;
+    padding: 12px 20px;
   }
 
   .appointment-type {
     flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .type-btn {
+    padding: 10px 20px;
+    font-size: 13px;
   }
 
   .features-grid {

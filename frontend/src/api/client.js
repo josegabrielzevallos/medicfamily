@@ -27,14 +27,27 @@ client.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refresh_token');
+      
+      console.log("🔄 Intentando refrescar token...");
+      
+      if (!refreshToken) {
+        console.log("❌ No hay refresh token");
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+      
       try {
-        const response = await axios.post(`${API_BASE_URL}/token/refresh/`, {
+        const response = await axios.post(`${API_BASE_URL}/appointments/refresh-token/`, {
           refresh: refreshToken,
         });
+        console.log("✅ Token refrescado exitosamente");
         localStorage.setItem('access_token', response.data.access);
         client.defaults.headers.common.Authorization = `Bearer ${response.data.access}`;
         return client(originalRequest);
       } catch (err) {
+        console.log("❌ Error al refrescar token");
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         window.location.href = '/login';
@@ -47,13 +60,16 @@ client.interceptors.response.use(
 // Authentication APIs
 export const authAPI = {
   login: (username, password) => 
-    client.post('/token/', { username, password }),
+    client.post('/appointments/login/', { username, password }),
   
   register: (userData) => 
     client.post('/appointments/register/', userData),
   
+  registerDoctor: (doctorData) => 
+    client.post('/appointments/register-doctor/', doctorData),
+  
   refreshToken: (refresh) => 
-    client.post('/token/refresh/', { refresh }),
+    client.post('/appointments/refresh-token/', { refresh }),
 };
 
 // Specialties API

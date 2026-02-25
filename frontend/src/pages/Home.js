@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import CityAutocomplete from '../components/CityAutocomplete';
+import { peruCities } from '../utils/peruCities';
 import './Home.css';
 
 const Home = () => {
@@ -22,16 +24,14 @@ const Home = () => {
             <h1>Encuentra tu especialista y pide cita</h1>
             <p>Miles de profesionales están aquí para ayudarte</p>
           </div>
-          <div className="hero-image">
-            <div className="doctors-illustration">👨‍⚕️👩‍⚕️👨‍⚕️</div>
-          </div>
+        
         </div>
 
         {/* Search Section */}
         <div className="search-container">
           <form onSubmit={handleSearch} className="search-form">
             {/* Appointment Type Toggle */}
-            <div className="appointment-type">
+            <div className="appointment-type-btn">
               <button
                 type="button"
                 className={`type-btn ${appointmentType === 'presencial' ? 'active' : ''}`}
@@ -66,13 +66,11 @@ const Home = () => {
                 <option value="medicina_general">Medicina General</option>
               </select>
 
-              <input
-                type="text"
-                placeholder="Ej. Guadalajara"
+              <CityAutocomplete
+                cities={peruCities}
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="search-input"
-                required
+                onChange={(city) => setLocation(city)}
+                placeholder="Ej. Lima, Cusco, Arequipa..."
               />
 
               <button type="submit" className="search-btn">

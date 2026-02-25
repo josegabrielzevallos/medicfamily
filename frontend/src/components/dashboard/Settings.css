@@ -1,0 +1,385 @@
+/* ===== SETTINGS ===== */
+.settings {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+}
+
+.settings-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.settings-section {
+  padding: 25px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.settings-section:last-of-type {
+  border-bottom: none;
+}
+
+.settings-section h3 {
+  margin: 0 0 20px 0;
+  color: #1a202c;
+  font-size: 18px;
+  font-weight: 700;
+  border-bottom: 2px solid #f0f4f8;
+  padding-bottom: 12px;
+}
+
+/* ===== SETTING ITEM ===== */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f4f8;
+  transition: all 0.3s ease;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item:hover {
+  background: #f7fafc;
+  padding: 15px;
+  margin: 0 -25px;
+  padding-left: 40px;
+}
+
+.setting-header {
+  flex: 1;
+}
+
+.setting-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.setting-description {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #718096;
+}
+
+/* ===== TOGGLE SWITCH ===== */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+  margin-left: 15px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e0;
+  transition: 0.3s;
+  border-radius: 28px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input:checked + .slider {
+  background-color: #667eea;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* ===== SETTING SELECT ===== */
+.setting-select {
+  padding: 10px 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  color: #1a202c;
+  cursor: pointer;
+  min-width: 150px;
+  transition: all 0.2s;
+}
+
+.setting-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* ===== SETTINGS ACTIONS ===== */
+.settings-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.settings-actions.danger {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-setting-action {
+  flex: 1;
+  min-width: 150px;
+  padding: 12px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  background: white;
+  color: #1a202c;
+}
+
+.btn-setting-action.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.btn-setting-action.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-setting-action.secondary {
+  background: white;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.btn-setting-action.secondary:hover {
+  background: #edf2f7;
+}
+
+.btn-setting-action.danger {
+  background: #fed7d7;
+  color: #742a2a;
+  border-color: #f56565;
+}
+
+.btn-setting-action.danger:hover {
+  background: #fc8181;
+}
+
+.btn-setting-action.danger-delete {
+  background: #f56565;
+  color: white;
+  border-color: #f56565;
+}
+
+.btn-setting-action.danger-delete:hover {
+  background: #e53e3e;
+  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+}
+
+/* ===== SETTINGS FOOTER ===== */
+.settings-footer {
+  padding: 20px 25px;
+  background: #f7fafc;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.btn-save-settings {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.btn-save-settings:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.settings-info {
+  margin: 0;
+  font-size: 12px;
+  color: #a0aec0;
+}
+
+/* ===== SETTINGS INFO BOX ===== */
+.settings-info-box {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.settings-info-box h4 {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.help-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.help-links li {
+  margin: 0;
+}
+
+.help-links a {
+  display: block;
+  padding: 8px 12px;
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.help-links a:hover {
+  background: #edf2f7;
+  color: #764ba2;
+  padding-left: 20px;
+}
+
+.version-info {
+  margin: 15px 0 0 0;
+  padding-top: 15px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 11px;
+  color: #a0aec0;
+  text-align: center;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .settings {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-info-box {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-section {
+    padding: 15px;
+  }
+
+  .setting-item:hover {
+    padding: 15px;
+    margin: 0 -15px;
+    padding-left: 30px;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+  }
+
+  .btn-setting-action {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .setting-select {
+    width: 100%;
+  }
+
+  .toggle-switch {
+    margin-left: 10px;
+  }
+
+  .settings-info-box {
+    padding: 15px;
+  }
+
+  .help-links {
+    gap: 8px;
+  }
+
+  .help-links a {
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-section h3 {
+    font-size: 15px;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
+
+  .setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0;
+  }
+
+  .toggle-switch {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .settings-footer {
+    padding: 15px;
+  }
+
+  .btn-save-settings {
+    width: 100%;
+  }
+
+  .settings-info-box {
+    padding: 12px;
+  }
+
+  .help-links a {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+}

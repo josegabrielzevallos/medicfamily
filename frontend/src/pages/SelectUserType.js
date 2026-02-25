@@ -24,6 +24,13 @@ const SelectUserType = () => {
     }
   ];
 
+  const getLink = (typeId) => {
+    if (typeId === 'doctor') {
+      return '/register/doctor';
+    }
+    return `/register?type=${typeId}`;
+  };
+
   return (
     <div className="select-user-type">
       <div className="select-user-type__container">
@@ -35,7 +42,7 @@ const SelectUserType = () => {
           {userTypes.map(type => (
             <Link
               key={type.id}
-              to={`/register?type=${type.id}`}
+              to={getLink(type.id)}
               className="user-type-card"
             >
               <div className="user-type-card__icon">{type.icon}</div>
