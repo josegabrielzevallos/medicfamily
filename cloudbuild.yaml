@@ -26,7 +26,7 @@ steps:
       - '--region=europe-west1'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--set-env-vars=DEBUG=False,SECRET_KEY=${_SECRET_KEY},DB_ENGINE=django.db.backends.postgresql,DB_NAME=${_DB_NAME},DB_USER=${_DB_USER},DB_PASSWORD=${_DB_PASSWORD},DB_HOST=${_DB_HOST},DB_PORT=5432,ALLOWED_HOSTS=.run.app'
+      - '--set-env-vars=^|^DEBUG=False|SECRET_KEY=${_SECRET_KEY}|DB_ENGINE=django.db.backends.postgresql|DB_NAME=${_DB_NAME}|DB_USER=${_DB_USER}|DB_PASSWORD=${_DB_PASSWORD}|DB_HOST=${_DB_HOST}|DB_PORT=5432|ALLOWED_HOSTS=.run.app'
       - '--min-instances=0'
       - '--max-instances=5'
     waitFor: ['push-backend']
