@@ -18,8 +18,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Expose port
-EXPOSE 8000
+# Collect static files
+RUN python manage.py collectstatic --no-input --settings=medicfamily.settings || true
 
-# Run migrations and start server
-CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+# Expose port (Cloud Run inyecta $PORT en runtime)
+EXPOSE 8080
+
+# Usa Gunicorn con el puerto que Cloud Run asigne via $PORT
+CMD sh -c "python manage.py migrate --no-input && gunicorn medicfamily.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"

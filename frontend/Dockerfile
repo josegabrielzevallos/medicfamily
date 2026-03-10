@@ -3,6 +3,10 @@ FROM node:20-alpine as builder
 
 WORKDIR /app
 
+# Permite inyectar la URL del backend en tiempo de build
+ARG REACT_APP_API_URL=http://localhost:8000/api
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
 # Copy package files
 COPY package.json package-lock.json* ./
 
@@ -26,8 +30,8 @@ RUN npm install -g serve
 # Copy built app from builder
 COPY --from=builder /app/build ./build
 
-# Expose port
-EXPOSE 3000
+# Expose port (Cloud Run inyecta $PORT en runtime)
+EXPOSE 8080
 
-# Start the app
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Cloud Run define $PORT dinamicamente
+CMD sh -c "serve -s build -l ${PORT:-8080}"

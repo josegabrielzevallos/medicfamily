@@ -11,7 +11,12 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-secret-key-here'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+# Permite localhost en dev y dominios .run.app en Cloud Run
+_ALLOWED = config('ALLOWED_HOSTS', default='localhost,127.0.0.1')
+ALLOWED_HOSTS = [h.strip() for h in _ALLOWED.split(',')]
+# Acepta cualquier subdominio *.run.app
+if not DEBUG:
+    ALLOWED_HOSTS += ['.run.app']
 
 # Application definition
 INSTALLED_APPS = [
@@ -28,6 +33,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Sirve archivos estáticos en producción
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -124,6 +130,11 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:8000',
 ]
+# En producción también aceptar dominios de Cloud Run
+if not DEBUG:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r'^https://.*\.run\.app$',
+    ]
 
 # JWT Configuration
 JWT_SECRET = config('JWT_SECRET', default='your-jwt-secret-key')
