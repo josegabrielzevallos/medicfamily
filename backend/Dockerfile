@@ -25,5 +25,4 @@ RUN python manage.py collectstatic --no-input --settings=medicfamily.settings ||
 EXPOSE 8080
 
 # Inicia gunicorn siempre; migrate en background para no bloquear el puerto
-CMD sh -c "gunicorn medicfamily.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120 &\
-  sleep 5 && python manage.py migrate --no-input; wait"
+CMD sh -c "gunicorn medicfamily.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120 --preload"
