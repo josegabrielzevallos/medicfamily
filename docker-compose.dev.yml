@@ -1,21 +1,18 @@
-version: '3.8'
-
 services:
-  # MySQL Database
+  # PostgreSQL Database
   db:
-    image: mysql:8.0
-    container_name: medicfamily-mysql
+    image: postgres:18
+    container_name: medicfamily-postgres
     environment:
-      MYSQL_ROOT_PASSWORD: admin123
-      MYSQL_DATABASE: medicfamily
-      MYSQL_USER: medicfamily_user
-      MYSQL_PASSWORD: medicfamily_pass
+      POSTGRES_DB: medicfamily
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
     ports:
-      - "3307:3306"
+      - "5433:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d medicfamily"]
       timeout: 20s
       retries: 10
     networks:
@@ -32,13 +29,14 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=True
-      - DB_ENGINE=django.db.backends.mysql
+      - DB_ENGINE=django.db.backends.postgresql
       - DB_NAME=medicfamily
-      - DB_USER=medicfamily_user
-      - DB_PASSWORD=medicfamily_pass
+      - DB_USER=postgres
+      - DB_PASSWORD=admin123
       - DB_HOST=db
-      - DB_PORT=3306
+      - DB_PORT=5432
       - SECRET_KEY=${SECRET_KEY:-django-insecure-desarrollo-local-cambiar-en-produccion}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
     volumes:
       - ./backend:/app
     depends_on:
@@ -67,7 +65,7 @@ services:
       - medicfamily_network
 
 volumes:
-  mysql_data:
+  postgres_data:
 
 networks:
   medicfamily_network:

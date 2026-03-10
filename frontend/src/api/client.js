@@ -62,6 +62,10 @@ export const authAPI = {
   login: (username, password) => 
     client.post('/appointments/login/', { username, password }),
   
+  // Acepta { credential, user_type } (ID token) o { access_token, user_type } (hook flow)
+  googleLogin: (data) =>
+    client.post('/appointments/google-login/', data),
+  
   register: (userData) => 
     client.post('/appointments/register/', userData),
   
@@ -83,9 +87,17 @@ export const specialtyAPI = {
 export const doctorAPI = {
   getAll: (params) => client.get('/appointments/doctors/', { params }),
   getById: (id) => client.get(`/appointments/doctors/${id}/`),
+  getMyProfile: () => client.get('/appointments/doctors/my_profile/'),
   getAvailability: (id) => client.get(`/appointments/doctors/${id}/availability/`),
   getRatings: (id) => client.get(`/appointments/doctors/${id}/ratings/`),
   update: (id, data) => client.put(`/appointments/doctors/${id}/`, data),
+  uploadPhoto: (file) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return client.patch('/appointments/doctors/upload_photo/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   verify: (id) => client.post(`/appointments/doctors/${id}/verify/`),
   reject: (id) => client.post(`/appointments/doctors/${id}/reject/`),
 };
@@ -96,6 +108,7 @@ export const patientAPI = {
   getById: (id) => client.get(`/appointments/patients/${id}/`),
   getMyProfile: () => client.get('/appointments/patients/my_profile/'),
   update: (id, data) => client.put(`/appointments/patients/${id}/`, data),
+  forDoctor: (q = '') => client.get('/appointments/patients/for_doctor/', { params: q ? { q } : {} }),
 };
 
 // Appointments API

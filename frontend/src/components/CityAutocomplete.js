@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import './CityAutocomplete.css';
 
 function CityAutocomplete({ cities, value, onChange, placeholder = "Buscar ciudad..." }) {
@@ -40,7 +41,7 @@ function CityAutocomplete({ cities, value, onChange, placeholder = "Buscar ciuda
   return (
     <div ref={wrapperRef} className="city-autocomplete">
       <div className="city-input-wrapper">
-        <span className="city-icon">📍</span>
+        <LocationOnOutlinedIcon className="city-icon" sx={{ fontSize: 18, color: '#aaa' }} />
         <input
           type="text"
           value={value}
@@ -69,7 +70,7 @@ function CityAutocomplete({ cities, value, onChange, placeholder = "Buscar ciuda
               className="city-option"
               onClick={() => handleSelect(city)}
             >
-              <span>📍</span>
+              <LocationOnOutlinedIcon sx={{ fontSize: 16, color: '#aaa', flexShrink: 0 }} />
               <span>{city}</span>
             </div>
           ))}

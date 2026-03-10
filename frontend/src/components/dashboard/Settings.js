@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import PaletteIcon from '@mui/icons-material/Palette';
+import PersonIcon from '@mui/icons-material/Person';
+import SettingsIcon from '@mui/icons-material/Settings';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import SaveIcon from '@mui/icons-material/Save';
 import './Settings.css';
 
 const Settings = () => {
@@ -36,17 +42,26 @@ const Settings = () => {
   };
 
   const handleSelectChange = (key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const [saved, setSaved] = useState(false);
+
+  const handleSaveSettings = () => {
+    try {
+      localStorage.setItem('doctorSettings', JSON.stringify({ ...settings, ...profileSettings }));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      console.error('Could not persist settings:', e);
+    }
   };
 
   return (
     <div className="settings">
       <div className="settings-container">
         <div className="settings-section">
-          <h3>🔔 Notificaciones</h3>
+          <h3><NotificationsIcon fontSize="small" /> Notificaciones</h3>
           
           <div className="setting-item">
             <div className="setting-header">
@@ -125,7 +140,7 @@ const Settings = () => {
         </div>
 
         <div className="settings-section">
-          <h3>🎨 Apariencia</h3>
+          <h3><PaletteIcon fontSize="small" /> Apariencia</h3>
 
           <div className="setting-item">
             <div className="setting-header">
@@ -191,7 +206,7 @@ const Settings = () => {
         </div>
 
         <div className="settings-section">
-          <h3>👤 Perfil Público</h3>
+          <h3><PersonIcon fontSize="small" /> Perfil Público</h3>
 
           <div className="setting-item">
             <div className="setting-header">
@@ -255,28 +270,23 @@ const Settings = () => {
         </div>
 
         <div className="settings-section">
-          <h3>⚙️ Sistema</h3>
-
-          <div className="settings-actions">
-            <button className="btn-setting-action primary">🔄 Sincronizar Datos</button>
-            <button className="btn-setting-action secondary">📥 Descargar Datos</button>
-            <button className="btn-setting-action secondary">🗑️ Limpiar Caché</button>
-          </div>
+          <h3><SettingsIcon fontSize="small" /> Sistema</h3>
 
           <div className="settings-actions danger">
-            <button className="btn-setting-action danger">⚠️ Cerrar Sesión en Todos los Dispositivos</button>
-            <button className="btn-setting-action danger-delete">🗑️ Eliminar Cuenta</button>
+            <button className="btn-setting-action danger">Cerrar Sesión en Todos los Dispositivos</button>
           </div>
         </div>
 
         <div className="settings-footer">
-          <button className="btn-save-settings">💾 Guardar Cambios</button>
-          <p className="settings-info">Los cambios se guardarán automáticamente</p>
+          {saved && <p className="settings-saved-msg">✓ Configuración guardada</p>}
+          <button className="btn-save-settings" onClick={handleSaveSettings}>
+            <SaveIcon fontSize="small" /> Guardar Cambios
+          </button>
         </div>
       </div>
 
       <div className="settings-info-box">
-        <h4>❓ Ayuda y Soporte</h4>
+        <h4><HelpOutlineIcon fontSize="small" /> Ayuda y Soporte</h4>
         <ul className="help-links">
           <li><a href="#help">Centro de Ayuda</a></li>
           <li><a href="#faq">Preguntas Frecuentes</a></li>

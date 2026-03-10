@@ -34,8 +34,11 @@
   opacity: 0.8;
 }
 
-.logo-icon {
+.navbar-logo-icon {
   font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Hamburger Menu */
@@ -201,7 +204,7 @@
     font-size: 20px;
   }
 
-  .logo-icon {
+  .navbar-logo-icon {
     font-size: 24px;
   }
 

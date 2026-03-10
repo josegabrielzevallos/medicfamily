@@ -38,6 +38,26 @@
   font-size: 60px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.profile-avatar:hover .avatar-overlay,
+.profile-avatar.uploading .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
 .profile-name-section {
@@ -469,4 +489,36 @@
   .stats-grid.small-stats {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* ===== ALERTS ===== */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.alert-success {
+  background: #c6f6d5;
+  color: #276749;
+  border-left: 4px solid #48bb78;
+}
+
+.alert-error {
+  background: #fed7d7;
+  color: #c53030;
+  border-left: 4px solid #f56565;
+}
+
+/* ===== VERIFIED BADGE ===== */
+.profile-verified {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #276749;
+  font-weight: 500;
 }

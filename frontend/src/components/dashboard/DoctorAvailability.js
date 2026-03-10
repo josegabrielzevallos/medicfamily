@@ -1,38 +1,99 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import SaveIcon from '@mui/icons-material/Save';
+import InfoIcon from '@mui/icons-material/Info';
+import SettingsIcon from '@mui/icons-material/Settings';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import { availabilityAPI } from '../../api/client';
 import './DoctorAvailability.css';
 
-const DoctorAvailability = () => {
-  const [availability, setAvailability] = useState({
-    monday: { start: '09:00', end: '17:00', enabled: true },
-    tuesday: { start: '09:00', end: '17:00', enabled: true },
-    wednesday: { start: '09:00', end: '17:00', enabled: true },
-    thursday: { start: '09:00', end: '17:00', enabled: true },
-    friday: { start: '09:00', end: '17:00', enabled: true },
-    saturday: { start: '10:00', end: '14:00', enabled: false },
-    sunday: { start: '00:00', end: '00:00', enabled: false }
-  });
+// day_of_week: 0=Lunes, 1=Martes, ..., 6=Domingo
+const DAY_KEYS = [0, 1, 2, 3, 4, 5, 6];
+const DAY_LABELS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
-  const [specialDays, setSpecialDays] = useState([
-    { date: '2026-03-10', reason: 'Feriado', status: 'no-disponible' },
-    { date: '2026-03-15', reason: 'Congresos Médicos', status: 'limitado' }
-  ]);
+const defaultSchedule = () =>
+  Object.fromEntries(DAY_KEYS.map(d => [d, {
+    id: null, start_time: '09:00', end_time: '17:00', is_available: d < 5
+  }]));
 
-  const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-  const dayLabels = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+const DoctorAvailability = ({ doctorData }) => {
+  const [schedule, setSchedule] = useState(defaultSchedule());
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
+  const [saveError, setSaveError] = useState('');
 
-  const handleTimeChange = (day, field, value) => {
-    setAvailability(prev => ({
+  useEffect(() => {
+    if (!doctorData?.doctor_id) return;
+    setLoading(true);
+    availabilityAPI.getAll({ doctor_id: doctorData.doctor_id })
+      .then(response => {
+        const records = response.data?.results || response.data || [];
+        const base = defaultSchedule();
+        records.forEach(rec => {
+          const d = rec.day_of_week;
+          base[d] = {
+            id: rec.id,
+            start_time: rec.start_time ? rec.start_time.substring(0, 5) : '09:00',
+            end_time: rec.end_time ? rec.end_time.substring(0, 5) : '17:00',
+            is_available: rec.is_available,
+          };
+        });
+        setSchedule(base);
+      })
+      .catch(err => console.error('Error loading availability:', err))
+      .finally(() => setLoading(false));
+  }, [doctorData]);
+
+  const handleTimeChange = (dayIdx, field, value) => {
+    setSchedule(prev => ({
       ...prev,
-      [day]: { ...prev[day], [field]: value }
+      [dayIdx]: { ...prev[dayIdx], [field]: value },
     }));
   };
 
-  const handleToggleDay = (day) => {
-    setAvailability(prev => ({
+  const handleToggle = (dayIdx) => {
+    setSchedule(prev => ({
       ...prev,
-      [day]: { ...prev[day], enabled: !prev[day].enabled }
+      [dayIdx]: { ...prev[dayIdx], is_available: !prev[dayIdx].is_available },
     }));
   };
+
+  const handleSave = async () => {
+    if (!doctorData?.doctor_id) {
+      setSaveError('No se encontró el ID del doctor.');
+      return;
+    }
+    setSaving(true);
+    setSaveMsg('');
+    setSaveError('');
+    try {
+      for (const d of DAY_KEYS) {
+        const slot = schedule[d];
+        const payload = {
+          doctor_id: doctorData.doctor_id,
+          day_of_week: d,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+          is_available: slot.is_available,
+        };
+        if (slot.id) {
+          const res = await availabilityAPI.update(slot.id, payload);
+          setSchedule(prev => ({ ...prev, [d]: { ...prev[d], id: res.data.id } }));
+        } else {
+          const res = await availabilityAPI.create(payload);
+          setSchedule(prev => ({ ...prev, [d]: { ...prev[d], id: res.data.id } }));
+        }
+      }
+      setSaveMsg('Horario guardado correctamente.');
+    } catch (err) {
+      console.error('Error saving availability:', err);
+      setSaveError('Error al guardar. Inténtalo de nuevo.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const activeDays = DAY_KEYS.filter(d => schedule[d].is_available).length;
 
   return (
     <div className="doctor-availability">
@@ -41,89 +102,77 @@ const DoctorAvailability = () => {
           <h3>Horarios de Trabajo</h3>
           <p className="section-description">Configura tu disponibilidad semanal</p>
 
-          <div className="schedule-grid">
-            {daysOfWeek.map((day, idx) => (
-              <div key={day} className={`schedule-item ${availability[day].enabled ? 'enabled' : 'disabled'}`}>
-                <div className="schedule-header">
-                  <label className="schedule-day">{dayLabels[idx]}</label>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={availability[day].enabled}
-                      onChange={() => handleToggleDay(day)}
-                    />
-                    <span className="slider"></span>
-                  </label>
-                </div>
+          {saveMsg && <div className="alert alert-success">{saveMsg}</div>}
+          {saveError && <div className="alert alert-error">{saveError}</div>}
 
-                {availability[day].enabled && (
-                  <div className="schedule-times">
-                    <div className="time-input-group">
-                      <label>Inicio</label>
+          {loading ? (
+            <p style={{ padding: '20px', color: '#718096' }}>Cargando horarios…</p>
+          ) : (
+            <div className="schedule-grid">
+              {DAY_KEYS.map((d) => (
+                <div key={d} className={`schedule-item ${schedule[d].is_available ? 'enabled' : 'disabled'}`}>
+                  <div className="schedule-header">
+                    <label className="schedule-day">{DAY_LABELS[d]}</label>
+                    <label className="toggle-switch">
                       <input
-                        type="time"
-                        value={availability[day].start}
-                        onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
+                        type="checkbox"
+                        checked={schedule[d].is_available}
+                        onChange={() => handleToggle(d)}
                       />
-                    </div>
-                    <div className="time-input-group">
-                      <label>Fin</label>
-                      <input
-                        type="time"
-                        value={availability[day].end}
-                        onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
-                      />
-                    </div>
+                      <span className="slider"></span>
+                    </label>
                   </div>
-                )}
 
-                {!availability[day].enabled && (
-                  <p className="not-available">No disponible</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+                  {schedule[d].is_available && (
+                    <div className="schedule-times">
+                      <div className="time-input-group">
+                        <label>Inicio</label>
+                        <input
+                          type="time"
+                          value={schedule[d].start_time}
+                          onChange={(e) => handleTimeChange(d, 'start_time', e.target.value)}
+                        />
+                      </div>
+                      <div className="time-input-group">
+                        <label>Fin</label>
+                        <input
+                          type="time"
+                          value={schedule[d].end_time}
+                          onChange={(e) => handleTimeChange(d, 'end_time', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
 
-        <div className="availability-section">
-          <h3>Días Especiales</h3>
-          <p className="section-description">Períodos sin disponibilidad</p>
-
-          <div className="special-days-list">
-            {specialDays.map((day, idx) => (
-              <div key={idx} className={`special-day-item status-${day.status}`}>
-                <div className="special-day-info">
-                  <p className="special-date">{new Date(day.date).toLocaleDateString('es-ES')}</p>
-                  <p className="special-reason">{day.reason}</p>
+                  {!schedule[d].is_available && (
+                    <p className="not-available">No disponible</p>
+                  )}
                 </div>
-                <span className={`special-status ${day.status}`}>{day.status === 'no-disponible' ? 'No Disponible' : 'Limitado'}</span>
-              </div>
-            ))}
-          </div>
-
-          <button className="btn-add-special-day">+ Agregar Día Especial</button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="availability-actions">
-          <button className="btn-save-schedule">💾 Guardar Cambios</button>
-          <button className="btn-set-break">⏰ Establecer Descanso</button>
-          <button className="btn-reset-time">↻ Restablecer Horario</button>
+          <button className="btn-save-schedule" onClick={handleSave} disabled={saving}>
+            <SaveIcon fontSize="small" /> {saving ? 'Guardando…' : 'Guardar Cambios'}
+          </button>
         </div>
       </div>
 
       <div className="availability-info">
         <div className="info-box">
-          <h4>💡 Información</h4>
+          <h4><InfoIcon fontSize="small" /> Información</h4>
           <p>Estos horarios se mostrarán a los pacientes para que puedan agendar citas.</p>
         </div>
 
         <div className="info-box">
-          <h4>⚙️ Duración de Citas</h4>
+          <h4><SettingsIcon fontSize="small" /> Duración de Citas</h4>
           <div className="duration-settings">
             <label>Duración estándar:</label>
             <select className="duration-select">
               <option>15 minutos</option>
-              <option>30 minutos</option>
+              <option selected>30 minutos</option>
               <option>45 minutos</option>
               <option>60 minutos</option>
             </select>
@@ -131,19 +180,15 @@ const DoctorAvailability = () => {
         </div>
 
         <div className="info-box">
-          <h4>📊 Resumen</h4>
+          <h4><BarChartIcon fontSize="small" /> Resumen</h4>
           <div className="summary-stats">
             <div className="summary-item">
-              <span>Horas disponibles/semana:</span>
-              <strong>40 horas</strong>
+              <span>Días activos:</span>
+              <strong>{activeDays} días</strong>
             </div>
             <div className="summary-item">
-              <span>Días de trabajo:</span>
-              <strong>5 días</strong>
-            </div>
-            <div className="summary-item">
-              <span>Próximo descanso:</span>
-              <strong>10 Marzo 2026</strong>
+              <span>Horario predeterminado:</span>
+              <strong>09:00 – 17:00</strong>
             </div>
           </div>
         </div>

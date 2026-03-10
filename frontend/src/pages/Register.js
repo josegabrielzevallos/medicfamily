@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { authAPI } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import AuthForm from '../components/AuthForm';
 import './Register.css';
 
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [userType, setUserType] = useState('patient');
@@ -24,8 +25,7 @@ const Register = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Register user
-      const response = await authAPI.register({
+      const newUser = await register({
         username: formData.username,
         email: formData.email,
         first_name: formData.firstName,
@@ -34,13 +34,11 @@ const Register = () => {
         user_type: userType
       });
 
-      // Store tokens
-      localStorage.setItem('access_token', response.data.access);
-      localStorage.setItem('refresh_token', response.data.refresh);
-      localStorage.setItem('user_type', userType);
-
-      // Redirect to home
-      navigate('/');
+      if (newUser.role === 'doctor') {
+        navigate('/doctor/dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       setError(error.response?.data?.detail || 'Error en la registración. Intenta de nuevo.');
     } finally {

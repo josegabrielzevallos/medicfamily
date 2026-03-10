@@ -1,16 +1,23 @@
 import React from 'react';
 import './Footer.css';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import YouTubeIcon from '@mui/icons-material/YouTube';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 function Footer() {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { name: 'Facebook', icon: FaFacebook, url: '#' },
-    { name: 'Twitter', icon: FaTwitter, url: '#' },
-    { name: 'Instagram', icon: FaInstagram, url: '#' },
-    { name: 'LinkedIn', icon: FaLinkedin, url: '#' },
-    { name: 'YouTube', icon: FaYoutube, url: '#' },
+    { name: 'Facebook', icon: FacebookIcon, url: '#' },
+    { name: 'Twitter', icon: TwitterIcon, url: '#' },
+    { name: 'Instagram', icon: InstagramIcon, url: '#' },
+    { name: 'LinkedIn', icon: LinkedInIcon, url: '#' },
+    { name: 'YouTube', icon: YouTubeIcon, url: '#' },
   ];
 
   return (
@@ -36,9 +43,9 @@ function Footer() {
         {/* Sección de contacto */}
         <div className="footer-section">
           <h4>Contacto</h4>
-          <p>📧 info@medicfamily.com</p>
-          <p>📞 +1 (555) 123-4567</p>
-          <p>📍 Tu Ciudad, País</p>
+          <p><EmailIcon sx={{ fontSize: 18, verticalAlign: 'middle', marginRight: 1 }} /> info@medicfamily.com</p>
+          <p><PhoneIcon sx={{ fontSize: 18, verticalAlign: 'middle', marginRight: 1 }} /> +1 (555) 123-4567</p>
+          <p><LocationOnIcon sx={{ fontSize: 18, verticalAlign: 'middle', marginRight: 1 }} /> Tu Ciudad, País</p>
         </div>
 
         {/* Sección de redes sociales */}

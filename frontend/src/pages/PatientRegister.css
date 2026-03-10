@@ -1,0 +1,246 @@
+/* Patient Register — Doctoralia-inspired design */
+.pr-page {
+  min-height: calc(100vh - 70px);
+  background: #f7f8fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.pr-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 440px;
+  padding: 40px 40px 32px;
+}
+
+.pr-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 24px 0;
+  line-height: 1.2;
+}
+
+/* Social buttons */
+.pr-social-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 13px 20px;
+  border: 1.5px solid #d5d9e0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #1a1a2e;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+  margin-bottom: 12px;
+}
+
+.pr-social-btn:hover {
+  background: #f5f6f8;
+  border-color: #bbbfc8;
+}
+
+.pr-social-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pr-social-btn svg {
+  flex-shrink: 0;
+}
+
+/* Divider */
+.pr-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: #9ba3af;
+  font-size: 0.9rem;
+}
+
+.pr-divider::before,
+.pr-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e4e7ec;
+}
+
+/* Fields */
+.pr-field {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.pr-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid #d5d9e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1a1a2e;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.18s;
+  box-sizing: border-box;
+}
+
+.pr-input::placeholder {
+  color: #a0a9b5;
+}
+
+.pr-input:focus {
+  border-color: #5c9aff;
+}
+
+.pr-input.error {
+  border-color: #e74c3c;
+}
+
+.pr-eye-btn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ba3af;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.pr-eye-btn:hover {
+  color: #5c9aff;
+}
+
+.pr-field-error {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: block;
+}
+
+/* General error banner */
+.pr-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+/* Checkbox row */
+.pr-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0 20px;
+}
+
+.pr-checkbox-row input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: #5c9aff;
+  cursor: pointer;
+}
+
+.pr-checkbox-label {
+  font-size: 0.825rem;
+  color: #566070;
+  line-height: 1.4;
+}
+
+.pr-checkbox-label a {
+  color: #5c9aff;
+  text-decoration: none;
+}
+
+.pr-checkbox-label a:hover {
+  text-decoration: underline;
+}
+
+/* Submit button */
+.pr-submit-btn {
+  width: 100%;
+  padding: 15px;
+  background: #5c9aff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  margin-bottom: 18px;
+}
+
+.pr-submit-btn:hover:not(:disabled) {
+  background: #4587f5;
+  transform: translateY(-1px);
+}
+
+.pr-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Terms footer */
+.pr-terms {
+  font-size: 0.78rem;
+  color: #878f9a;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.pr-terms a {
+  color: #5c9aff;
+  text-decoration: none;
+}
+
+.pr-terms a:hover {
+  text-decoration: underline;
+}
+
+/* Already have account  */
+.pr-footer-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.875rem;
+  color: #566070;
+}
+
+.pr-footer-link a {
+  color: #5c9aff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pr-footer-link a:hover {
+  text-decoration: underline;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .pr-card {
+    padding: 28px 20px 24px;
+  }
+  .pr-title {
+    font-size: 1.5rem;
+  }
+}

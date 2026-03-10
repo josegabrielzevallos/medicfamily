@@ -1,28 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { doctorAPI, specialtyAPI } from '../api/client';
 import CityAutocomplete from '../components/CityAutocomplete';
 import { peruCities } from '../utils/peruCities';
 import './DoctorList.css';
 
 const DoctorList = () => {
+  const [searchParams] = useSearchParams();
   const [doctors, setDoctors] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [filters, setFilters] = useState({
     specialty: '',
     search: '',
-    city: '',
+    city: searchParams.get('city') || '',
+    specialtyName: searchParams.get('specialty') || '',
+    type: searchParams.get('type') || '',
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchSpecialties();
-    fetchDoctors();
   }, []);
 
+  // Cuando cargan las especialidades, si hay un nombre en la URL lo mapeamos al ID
   useEffect(() => {
-    fetchDoctors();
-  }, [filters]);
+    if (specialties.length > 0 && filters.specialtyName) {
+      const match = specialties.find(
+        s => s.name.toLowerCase().replace(/ /g, '_') === filters.specialtyName ||
+             s.name.toLowerCase() === filters.specialtyName
+      );
+      if (match) {
+        setFilters(f => ({ ...f, specialty: String(match.id), specialtyName: '' }));
+      } else {
+        fetchDoctors();
+      }
+    } else if (specialties.length > 0) {
+      fetchDoctors();
+    }
+  }, [specialties]);
+
+  useEffect(() => {
+    if (specialties.length > 0) fetchDoctors();
+  }, [filters.specialty, filters.search, filters.city, filters.type]);
 
   const fetchSpecialties = async () => {
     try {
@@ -36,15 +55,11 @@ const DoctorList = () => {
   const fetchDoctors = async () => {
     setLoading(true);
     try {
-      const params = {
-        search: filters.search
-      };
-      if (filters.specialty) {
-        params.specialty = filters.specialty;
-      }
-      if (filters.city) {
-        params.city = filters.city;
-      }
+      const params = {};
+      if (filters.search) params.search = filters.search;
+      if (filters.specialty) params.specialty = filters.specialty;
+      if (filters.city) params.city = filters.city;
+      if (filters.type) params.appointment_type = filters.type;
       const response = await doctorAPI.getAll(params);
       setDoctors(response.data);
     } catch (error) {

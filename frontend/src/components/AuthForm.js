@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import './AuthForm.css';
 
-const AuthForm = ({ mode = 'login', onSubmit, isLoading = false, userType = null }) => {
+const HAS_GOOGLE = !!process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+const AuthForm = ({ mode = 'login', onSubmit, isLoading = false, userType = null, onGoogleSuccess = null }) => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -144,6 +147,27 @@ const AuthForm = ({ mode = 'login', onSubmit, isLoading = false, userType = null
             {isLoading ? 'Procesando...' : mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}
           </button>
         </form>
+
+        {onGoogleSuccess && HAS_GOOGLE && (
+          <div className="google-login-section">
+            <div className="google-divider">
+              <span>o continúa con</span>
+            </div>
+            <div className="google-btn-wrapper">
+              <GoogleLogin
+                onSuccess={onGoogleSuccess}
+                onError={() => console.error('Error al iniciar sesión con Google')}
+                useOneTap
+                locale="es"
+                text={mode === 'login' ? 'signin_with' : 'signup_with'}
+                shape="rectangular"
+                theme="outline"
+                size="large"
+                width="320"
+              />
+            </div>
+          </div>
+        )}
 
         <div className="auth-footer">
           {mode === 'login' ? (

@@ -98,12 +98,14 @@ class AppointmentSerializer(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(
         queryset=Patient.objects.all(),
         source='patient',
-        write_only=True
+        write_only=True,
+        required=False,
     )
     doctor_id = serializers.PrimaryKeyRelatedField(
         queryset=Doctor.objects.all(),
         source='doctor',
-        write_only=True
+        write_only=True,
+        required=False,
     )
     virtual_meeting = VirtualMeetingLinkSerializer(read_only=True)
     rating = RatingSerializer(read_only=True)
@@ -169,16 +171,15 @@ class DoctorRegisterSerializer(serializers.Serializer):
     def create(self, validated_data):
         print(f"📝 Creando usuario con datos: {validated_data}")
         
-        # Generar username automáticamente desde email + timestamp
-        import time
-        base_username = validated_data['email'].split('@')[0]
-        timestamp = int(time.time())
-        username = f"{base_username}_{timestamp}"
-        
-        # Asegurarse de que el username sea único
+        # Generar username limpio desde nombre + apellido (ej: juan.perez)
+        first = validated_data['firstName'].lower().strip().replace(' ', '')
+        last = validated_data['lastName'].lower().strip().replace(' ', '')
+        base_username = f"{first}.{last}"
+        username = base_username
+        counter = 1
         while User.objects.filter(username=username).exists():
-            timestamp = int(time.time() * 1000)
-            username = f"{base_username}_{timestamp}"
+            username = f"{base_username}{counter}"
+            counter += 1
         
         print(f"✅ Username generado: {username}")
         

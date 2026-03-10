@@ -92,6 +92,10 @@
   font-size: 16px;
   font-weight: 600;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
 }
 
 .type-btn:hover {
@@ -106,14 +110,28 @@
 
 /* Search Inputs */
 .search-inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
   gap: 12px;
+  align-items: stretch;
   max-width: 900px;
   margin: 0 auto;
   padding: 0 10px;
-  overflow: visible;
   position: relative;
+}
+
+.search-inputs .search-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-inputs .city-autocomplete {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Sin campo de ciudad (modo virtual) */
+.search-inputs--virtual .search-input {
+  flex: 2;
 }
 
 .search-input {
@@ -122,6 +140,9 @@
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
+  height: 50px;
+  box-sizing: border-box;
+  background: white;
 }
 
 .search-input:focus {
@@ -129,17 +150,129 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
 }
 
-/* Estilos para CityAutocomplete en Home */
-.search-inputs .city-autocomplete {
-  width: 100%;
+.search-btn {
+  background: #0e7c59;
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.3s ease;
+  white-space: nowrap;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
+.search-btn:hover {
+  background: #0a5f47;
+}
+
+/* Info link - "¿En qué consiste la consulta en línea?" */
+.online-info-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.online-info-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.online-info-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+/* Online info modal overlay */
+.online-info-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.online-info-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 32px 32px;
+  max-width: 440px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.online-info-modal h3 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  padding-right: 32px;
+}
+
+.online-info-divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 0 16px 0;
+}
+
+.online-info-modal p {
+  margin: 0;
+  font-size: 15px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.online-info-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  transition: background 0.2s ease;
+}
+
+.online-info-close:hover {
+  background: #e5e7eb;
+}
+
+/* Estilos para CityAutocomplete dentro del home search */
 .search-inputs .city-input-wrapper {
   border: none;
   border-radius: 8px;
   background: white;
   padding: 0 12px;
   box-shadow: none;
+  height: 50px;
+  display: flex;
+  align-items: center;
 }
 
 .search-inputs .city-input-wrapper:focus-within {
@@ -148,25 +281,9 @@
 }
 
 .search-inputs .city-input {
-  padding: 14px 0;
+  padding: 0;
   font-size: 14px;
-}
-
-.search-btn {
-  background: #0e7c59;
-  color: white;
-  border: none;
-  padding: 14px 30px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background 0.3s ease;
-  white-space: nowrap;
-}
-
-.search-btn:hover {
-  background: #0a5f47;
+  height: 100%;
 }
 
 /* Features Section */
@@ -297,12 +414,18 @@
 /* Tablet Responsive */
 @media (max-width: 920px) {
   .search-inputs {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .search-inputs .search-input,
+  .search-inputs .city-autocomplete {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
   }
 
   .search-btn {
-    grid-column: 1 / -1;
+    flex: 1 1 100%;
+    justify-content: center;
   }
 }
 
@@ -332,13 +455,19 @@
   }
 
   .search-inputs {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 10px;
     padding: 0;
   }
 
+  .search-inputs .search-input,
+  .search-inputs .city-autocomplete {
+    flex: 1 1 100%;
+  }
+
   .search-btn {
-    grid-column: auto;
+    flex: 1 1 100%;
+    justify-content: center;
     padding: 12px 20px;
   }
 

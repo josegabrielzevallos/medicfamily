@@ -2,11 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for MySQL and build tools
+# Install system dependencies for PostgreSQL
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    pkg-config \
-    libmariadb-dev \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import DoctorRegisterForm from '../components/DoctorRegisterForm';
 import DoctorProfilePreview from '../components/DoctorProfilePreview';
 import './DoctorRegister.css';
 
 const DoctorRegister = () => {
   const navigate = useNavigate();
+  const { login: syncAuth } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -55,11 +57,12 @@ const DoctorRegister = () => {
       });
 
       console.log('✅ Registro exitoso:', response.data);
-      // Guardar los tokens
+      // Guardar los tokens y usuario en localStorage
       localStorage.setItem('access_token', response.data.access);
       localStorage.setItem('refresh_token', response.data.refresh);
-      localStorage.setItem('user_type', 'doctor');
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('user_id', response.data.user.id);
+      localStorage.setItem('user_role', 'doctor');
 
       // Redirigir al perfil del doctor
       navigate('/doctor/dashboard');

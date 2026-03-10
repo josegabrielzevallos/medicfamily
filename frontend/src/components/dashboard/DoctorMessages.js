@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import PersonIcon from '@mui/icons-material/Person';
+import SendIcon from '@mui/icons-material/Send';
+import MessageIcon from '@mui/icons-material/Message';
 import './DoctorMessages.css';
 
 const DoctorMessages = ({ setUnreadMessages }) => {
   const [messages, setMessages] = useState([
-    { id: 1, patient: 'María González', content: 'Tengo un dolor en el pecho, ¿puedo venir mañana?', time: '10:30 AM', unread: true, avatar: '👩' },
-    { id: 2, patient: 'Juan Pérez', content: 'Gracias doctor por su atención', time: '9:45 AM', unread: true, avatar: '👨' },
-    { id: 3, patient: 'Ana Martínez', content: 'Recuerdo que debo realizar los análisis', time: 'Ayer', unread: false, avatar: '👩' },
-    { id: 4, patient: 'Carlos López', content: '¿A qué hora es mi cita?', time: '2 días atrás', unread: false, avatar: '👨' }
+    { id: 1, patient: 'María González', content: 'Tengo un dolor en el pecho, ¿puedo venir mañana?', time: '10:30 AM', unread: true },
+    { id: 2, patient: 'Juan Pérez', content: 'Gracias doctor por su atención', time: '9:45 AM', unread: true },
+    { id: 3, patient: 'Ana Martínez', content: 'Recuerdo que debo realizar los análisis', time: 'Ayer', unread: false },
+    { id: 4, patient: 'Carlos López', content: '¿A qué hora es mi cita?', time: '2 días atrás', unread: false }
   ]);
 
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMessage, setNewMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState({});
+  const [chatHistory] = useState({});
 
   useEffect(() => {
     const unreadCount = messages.filter(m => m.unread).length;
@@ -61,7 +64,7 @@ const DoctorMessages = ({ setUnreadMessages }) => {
               className={`message-item ${selectedChat === message.id ? 'active' : ''} ${message.unread ? 'unread' : ''}`}
               onClick={() => handleSelectChat(message)}
             >
-              <div className="message-avatar">{message.avatar}</div>
+              <div className="message-avatar"><PersonIcon fontSize="small" /></div>
               <div className="message-info">
                 <p className="message-patient">{message.patient}</p>
                 <p className="message-preview">{message.content}</p>
@@ -80,16 +83,13 @@ const DoctorMessages = ({ setUnreadMessages }) => {
           <>
             <div className="chat-header">
               <div className="chat-header-info">
-                <span className="chat-avatar">{selectedMessage.avatar}</span>
+                <span className="chat-avatar"><PersonIcon /></span>
                 <div>
                   <h3>{selectedMessage.patient}</h3>
                   <p>En línea</p>
                 </div>
               </div>
               <div className="chat-actions">
-                <button>📞</button>
-                <button>📹</button>
-                <button>ℹ️</button>
               </div>
             </div>
 
@@ -118,13 +118,13 @@ const DoctorMessages = ({ setUnreadMessages }) => {
                   placeholder="Escribe tu mensaje..."
                   className="chat-input"
                 />
-                <button type="submit" className="chat-send-btn">Enviar</button>
+                <button type="submit" className="chat-send-btn"><SendIcon fontSize="small" /> Enviar</button>
               </form>
             </div>
           </>
         ) : (
           <div className="empty-chat">
-            <span className="empty-icon">💬</span>
+            <MessageIcon sx={{ fontSize: 48, color: '#a0aec0' }} />
             <p>Selecciona una conversación</p>
           </div>
         )}

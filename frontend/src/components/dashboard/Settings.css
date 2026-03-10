@@ -212,6 +212,20 @@ input:checked + .slider:before {
   background: #f7fafc;
   border-top: 1px solid #e2e8f0;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-saved-msg {
+  color: #276749;
+  background: #c6f6d5;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  border-left: 3px solid #48bb78;
 }
 
 .btn-save-settings {

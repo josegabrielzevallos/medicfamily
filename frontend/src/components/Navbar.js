@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem('access_token');
+  const { user, token, logout } = useAuth();
+  const isAuthenticated = !!token;
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    logout();
     navigate('/');
     setIsMenuOpen(false);
   };
@@ -19,7 +21,7 @@ const Navbar = () => {
       <div className="navbar-container">
         {/* Logo */}
         <Link to="/" className="navbar-logo">
-          <span className="logo-icon">⚕️</span>
+          <span className="navbar-logo-icon"><MedicalServicesIcon /></span>
           MedicFamily
         </Link>
 

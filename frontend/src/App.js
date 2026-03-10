@@ -1,5 +1,6 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -11,11 +12,15 @@ import Register from './pages/Register';
 import DoctorRegister from './pages/DoctorRegister';
 import Admin from './pages/Admin';
 import DoctorDashboard from './pages/DoctorDashboard';
+import PatientRegister from './pages/PatientRegister';
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const hideNavbar = location.pathname === '/doctor/dashboard';
+
   return (
-    <Router>
-      <Navbar />
+    <>
+      {!hideNavbar && <Navbar />}
       <div className="App">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -23,14 +28,25 @@ function App() {
           <Route path="/appointments" element={<Appointments />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register/type" element={<SelectUserType />} />
+          <Route path="/register/patient" element={<PatientRegister />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/doctor" element={<DoctorRegister />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
         </Routes>
       </div>
-      <Footer />
-    </Router>
+      {!hideNavbar && <Footer />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
 

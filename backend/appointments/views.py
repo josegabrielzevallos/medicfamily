@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, permissions, filters
+from rest_framework import viewsets, status, permissions, filters, parsers
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -72,26 +72,41 @@ def custom_refresh_token(request):
 def register(request):
     """Endpoint para registrar nuevos usuarios (paciente o doctor)"""
     try:
-        username = request.data.get('username')
-        email = request.data.get('email')
-        password = request.data.get('password')
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
-        user_type = request.data.get('user_type', 'patient')  # 'patient' o 'doctor'
-        
+        email     = request.data.get('email', '').strip()
+        password  = request.data.get('password')
+        first_name = request.data.get('first_name', '')
+        last_name  = request.data.get('last_name', '')
+        user_type  = request.data.get('user_type', 'patient')  # 'patient' o 'doctor'
+
+        # username: usar el provisto o auto-generar desde email
+        username = request.data.get('username', '').strip()
+        if not username:
+            base = email.split('@')[0] if email else 'user'
+            username = base
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base}{counter}"
+                counter += 1
+
+        if not email or not password:
+            return Response(
+                {'detail': 'Email y contraseña son requeridos'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Validar que no exista el usuario
         if User.objects.filter(username=username).exists():
             return Response(
                 {'detail': 'El usuario ya existe'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         if User.objects.filter(email=email).exists():
             return Response(
                 {'detail': 'El email ya está registrado'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Crear usuario
         user = User.objects.create_user(
             username=username,
@@ -119,6 +134,8 @@ def register(request):
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
+                'name': f"{user.first_name} {user.last_name}".strip(),
+                'role': user_type,
             }
         }, status=status.HTTP_201_CREATED)
     
@@ -143,16 +160,24 @@ def register_doctor(request):
             print(f"✅ Usuario creado: {user.username}")
             
             refresh = RefreshToken.for_user(user)
+
+            # Obtener datos del perfil de doctor recién creado
+            doctor_profile = Doctor.objects.select_related('specialty').get(user=user)
             
             return Response({
                 'access': str(refresh.access_token),
                 'refresh': str(refresh),
                 'user': {
                     'id': user.id,
+                    'doctor_id': doctor_profile.id,
                     'username': user.username,
                     'email': user.email,
                     'first_name': user.first_name,
                     'last_name': user.last_name,
+                    'name': f"{user.first_name} {user.last_name}".strip(),
+                    'specialty': doctor_profile.specialty.name if doctor_profile.specialty else '',
+                    'phone': doctor_profile.phone,
+                    'address': doctor_profile.address,
                     'role': 'doctor',
                 }
             }, status=status.HTTP_201_CREATED)
@@ -221,12 +246,21 @@ def custom_login(request):
         # Generar tokens
         refresh = RefreshToken.for_user(user)
         
-        # Detectar el role del usuario
+        # Detectar el role del usuario e incluir datos del perfil
         role = 'patient'
+        doctor_data = {}
         try:
-            if Doctor.objects.filter(user=user).exists():
-                role = 'doctor'
-        except:
+            doctor_profile = Doctor.objects.select_related('specialty').get(user=user)
+            role = 'doctor'
+            doctor_data = {
+                'doctor_id': doctor_profile.id,
+                'specialty': doctor_profile.specialty.name if doctor_profile.specialty else '',
+                'phone': doctor_profile.phone,
+                'address': doctor_profile.address,
+                'bio': doctor_profile.bio or '',
+                'is_verified': doctor_profile.is_verified,
+            }
+        except Doctor.DoesNotExist:
             pass
         
         return Response({
@@ -238,7 +272,9 @@ def custom_login(request):
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
+                'name': f"{user.first_name} {user.last_name}".strip(),
                 'role': role,
+                **doctor_data,
             }
         }, status=status.HTTP_200_OK)
         
@@ -250,6 +286,119 @@ def custom_login(request):
             {'detail': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_login(request):
+    """Login / registro con Google OAuth. Verifica el ID token de Google y devuelve JWT."""
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+        from decouple import config as decouple_config
+
+        credential   = request.data.get('credential')    # ID token (GoogleLogin component)
+        access_token = request.data.get('access_token')  # Access token (useGoogleLogin hook)
+        user_type    = request.data.get('user_type', 'patient')
+
+        if not credential and not access_token:
+            return Response({'error': 'Token de Google requerido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = first_name = last_name = ''
+
+        if credential:
+            # Flujo ID token — verificar con google-auth
+            google_client_id = decouple_config('GOOGLE_CLIENT_ID', default='')
+            if not google_client_id:
+                return Response({'error': 'GOOGLE_CLIENT_ID no configurado en el servidor'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            idinfo     = id_token.verify_oauth2_token(credential, google_requests.Request(), google_client_id, clock_skew_in_seconds=10)
+            email      = idinfo.get('email', '')
+            first_name = idinfo.get('given_name', '')
+            last_name  = idinfo.get('family_name', '')
+        else:
+            # Flujo access_token — llamar al userinfo endpoint de Google
+            import urllib.request as _urllib
+            import json as _json
+            req = _urllib.Request(f'https://www.googleapis.com/oauth2/v1/userinfo?access_token={access_token}')
+            with _urllib.urlopen(req) as resp:
+                info = _json.loads(resp.read().decode())
+            email      = info.get('email', '')
+            first_name = info.get('given_name', '')
+            last_name  = info.get('family_name', '')
+
+        if not email:
+            return Response({'error': 'No se pudo obtener el email de Google'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Buscar o crear el usuario por email
+        try:
+            user = User.objects.get(email=email)
+            print(f"✅ Usuario existente encontrado por Google: {user.username}")
+        except User.DoesNotExist:
+            # Generar username único
+            base_username = email.split('@')[0]
+            username = base_username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+            )
+            user.set_unusable_password()
+            user.save()
+            print(f"✅ Nuevo usuario creado via Google: {user.username}")
+
+            # Crear perfil según el tipo solicitado
+            if user_type == 'patient':
+                Patient.objects.get_or_create(user=user)
+
+        # Determinar el rol actual del usuario
+        role = 'patient'
+        doctor_data = {}
+        try:
+            doctor_profile = Doctor.objects.select_related('specialty').get(user=user)
+            role = 'doctor'
+            doctor_data = {
+                'doctor_id': doctor_profile.id,
+                'specialty': doctor_profile.specialty.name if doctor_profile.specialty else '',
+                'phone': doctor_profile.phone,
+                'address': doctor_profile.address,
+                'bio': doctor_profile.bio or '',
+                'is_verified': doctor_profile.is_verified,
+            }
+        except Doctor.DoesNotExist:
+            Patient.objects.get_or_create(user=user)
+
+        # Generar tokens JWT
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'name': f"{user.first_name} {user.last_name}".strip(),
+                'role': role,
+                **doctor_data,
+            }
+        }, status=status.HTTP_200_OK)
+
+    except ValueError as e:
+        print(f"❌ Token de Google inválido: {str(e)}")
+        return Response({'error': f'Token de Google inválido: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"❌ Error en google_login: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
@@ -269,7 +418,42 @@ class DoctorViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['user__first_name', 'user__last_name', 'specialty__name']
     ordering_fields = ['consultation_fee', 'created_at']
-    
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def my_profile(self, request):
+        """Retorna el perfil completo del doctor autenticado"""
+        try:
+            doctor = Doctor.objects.select_related('user', 'specialty').get(user=request.user)
+            serializer = DoctorSerializer(doctor)
+            return Response(serializer.data)
+        except Doctor.DoesNotExist:
+            return Response({'detail': 'Perfil de doctor no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['patch'], permission_classes=[IsAuthenticated],
+            parser_classes=[parsers.MultiPartParser, parsers.FormParser])
+    def upload_photo(self, request):
+        """Sube o actualiza la foto de perfil del doctor autenticado"""
+        try:
+            doctor = Doctor.objects.get(user=request.user)
+        except Doctor.DoesNotExist:
+            return Response({'detail': 'Perfil de doctor no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        if 'photo' not in request.FILES:
+            return Response({'detail': 'No se proporcionó ninguna imagen (campo: photo)'}, status=status.HTTP_400_BAD_REQUEST)
+
+        photo = request.FILES['photo']
+        # Validate type
+        if not photo.content_type.startswith('image/'):
+            return Response({'detail': 'El archivo debe ser una imagen'}, status=status.HTTP_400_BAD_REQUEST)
+        # Validate size (5 MB max)
+        if photo.size > 5 * 1024 * 1024:
+            return Response({'detail': 'La imagen no puede superar los 5 MB'}, status=status.HTTP_400_BAD_REQUEST)
+
+        doctor.profile_image = photo
+        doctor.save(update_fields=['profile_image'])
+        serializer = DoctorSerializer(doctor)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['get'])
     def appointments(self, request, pk=None):
         """Obtiene todas las citas de un doctor"""
@@ -321,6 +505,29 @@ class PatientViewSet(viewsets.ModelViewSet):
                 {'detail': 'Paciente no encontrado'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+    @action(detail=False, methods=['get'])
+    def for_doctor(self, request):
+        """Retorna la lista de pacientes que tienen o han tenido citas con el doctor autenticado.
+        Permite búsqueda con ?q=nombre"""
+        try:
+            doctor = Doctor.objects.get(user=request.user)
+        except Doctor.DoesNotExist:
+            return Response({'detail': 'Solo doctores pueden ver esta lista.'}, status=status.HTTP_403_FORBIDDEN)
+
+        patient_ids = Appointment.objects.filter(doctor=doctor).values_list('patient_id', flat=True).distinct()
+        queryset = Patient.objects.filter(id__in=patient_ids)
+
+        q = request.query_params.get('q', '').strip()
+        if q:
+            queryset = queryset.filter(
+                Q(user__first_name__icontains=q) |
+                Q(user__last_name__icontains=q) |
+                Q(user__email__icontains=q)
+            )
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class AvailabilityViewSet(viewsets.ModelViewSet):
@@ -387,15 +594,29 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         return Appointment.objects.none()
     
     def perform_create(self, serializer):
-        """Crea una nueva cita"""
+        """Crea una nueva cita. Admite doctor o paciente como creador."""
+        user = self.request.user
+
+        # Si es doctor: puede crear citas para cualquier paciente (especificando patient_id)
         try:
-            patient = Patient.objects.get(user=self.request.user)
+            doctor = Doctor.objects.get(user=user)
+            patient_id = self.request.data.get('patient_id')
+            if not patient_id:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({'patient_id': 'El doctor debe indicar patient_id para crear la cita.'})
+            patient = get_object_or_404(Patient, id=patient_id)
+            serializer.save(patient=patient, doctor=doctor)
+            return
+        except Doctor.DoesNotExist:
+            pass
+
+        # Si es paciente: se asigna automáticamente como paciente
+        try:
+            patient = Patient.objects.get(user=user)
             serializer.save(patient=patient)
         except Patient.DoesNotExist:
-            return Response(
-                {'detail': 'Solo pacientes pueden agendar citas'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'detail': 'Solo pacientes o doctores pueden agendar citas.'})
     
     @action(detail=True, methods=['post'])
     def confirm(self, request, pk=None):

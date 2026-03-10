@@ -427,3 +427,56 @@
     max-height: 400px;
   }
 }
+
+/* ===== SEARCH WRAPPER ===== */
+.search-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-icon-inner {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+  font-size: 18px !important;
+}
+
+.search-wrapper .search-input {
+  padding-left: 36px;
+  width: 100%;
+}
+
+/* ===== HISTORY STATUS ===== */
+.history-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.history-status.status-completed,
+span.status-completed {
+  background: #bee3f8;
+  color: #2b6cb0;
+}
+
+.history-status.status-pending,
+span.status-pending {
+  background: #fefcbf;
+  color: #b7791f;
+}
+
+.history-status.status-confirmed,
+span.status-confirmed {
+  background: #c6f6d5;
+  color: #276749;
+}
+
+.history-status.status-cancelled,
+span.status-cancelled {
+  background: #fed7d7;
+  color: #c53030;
+}

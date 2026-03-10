@@ -1,19 +1,62 @@
 import React, { useState, useEffect } from 'react';
+import TodayIcon from '@mui/icons-material/Today';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import MessageIcon from '@mui/icons-material/Message';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PersonIcon from '@mui/icons-material/Person';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import { appointmentAPI } from '../../api/client';
 import './DashboardOverview.css';
 
-const DashboardOverview = ({ doctorData }) => {
+const DashboardOverview = ({ doctorData, onNavigate }) => {
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    todayAppointments: 5,
-    weekAppointments: 23,
-    totalPatients: 142,
-    unreadMessages: 8
+    todayAppointments: 0,
+    pendingAppointments: 0,
+    completedAppointments: 0,
+    totalAppointments: 0,
   });
 
-  const [nextAppointments, setNextAppointments] = useState([
-    { id: 1, patient: 'María González', time: '10:00 AM', type: 'Consulta' },
-    { id: 2, patient: 'Juan Pérez', time: '11:30 AM', type: 'Seguimiento' },
-    { id: 3, patient: 'Ana Martínez', time: '2:00 PM', type: 'Consulta' }
-  ]);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    setLoading(true);
+    appointmentAPI.getAll()
+      .then(response => {
+        const all = response.data?.results || response.data || [];
+        setAppointments(all);
+        const today = all.filter(a => a.appointment_date && a.appointment_date.startsWith(todayStr));
+        const pending = all.filter(a => a.status === 'pending' || a.status === 'confirmed');
+        const completed = all.filter(a => a.status === 'completed');
+        setStats({
+          todayAppointments: today.length,
+          pendingAppointments: pending.length,
+          completedAppointments: completed.length,
+          totalAppointments: all.length,
+        });
+      })
+      .catch(err => console.error('Error fetching appointments:', err))
+      .finally(() => setLoading(false));
+  }, [todayStr]);
+
+  const upcoming = appointments
+    .filter(a => a.status === 'pending' || a.status === 'confirmed')
+    .sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date))
+    .slice(0, 5);
+
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return d.toLocaleString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const statusLabel = (status) => ({
+    pending: 'Pendiente',
+    confirmed: 'Confirmada',
+    completed: 'Completada',
+    cancelled: 'Cancelada',
+  }[status] || status);
 
   return (
     <div className="dashboard-overview">
@@ -21,44 +64,38 @@ const DashboardOverview = ({ doctorData }) => {
         <h2>Bienvenido, Dr. {doctorData?.name || 'Usuario'}</h2>
         <p className="overview-date">
           {new Date().toLocaleDateString('es-ES', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
           })}
         </p>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card stat-primary">
-          <div className="stat-icon">📅</div>
+          <div className="stat-icon"><TodayIcon fontSize="large" /></div>
           <div className="stat-content">
             <p className="stat-label">Citas Hoy</p>
-            <p className="stat-value">{stats.todayAppointments}</p>
+            <p className="stat-value">{loading ? '…' : stats.todayAppointments}</p>
           </div>
         </div>
-
         <div className="stat-card stat-secondary">
-          <div className="stat-icon">👥</div>
+          <div className="stat-icon"><AccessTimeIcon fontSize="large" /></div>
           <div className="stat-content">
-            <p className="stat-label">Pacientes Esta Semana</p>
-            <p className="stat-value">{stats.weekAppointments}</p>
+            <p className="stat-label">Citas Pendientes</p>
+            <p className="stat-value">{loading ? '…' : stats.pendingAppointments}</p>
           </div>
         </div>
-
         <div className="stat-card stat-tertiary">
-          <div className="stat-icon">💾</div>
+          <div className="stat-icon"><CheckCircleIcon fontSize="large" /></div>
           <div className="stat-content">
-            <p className="stat-label">Total de Pacientes</p>
-            <p className="stat-value">{stats.totalPatients}</p>
+            <p className="stat-label">Completadas</p>
+            <p className="stat-value">{loading ? '…' : stats.completedAppointments}</p>
           </div>
         </div>
-
         <div className="stat-card stat-quaternary">
-          <div className="stat-icon">💬</div>
+          <div className="stat-icon"><CalendarMonthIcon fontSize="large" /></div>
           <div className="stat-content">
-            <p className="stat-label">Mensajes No Leídos</p>
-            <p className="stat-value">{stats.unreadMessages}</p>
+            <p className="stat-label">Total de Citas</p>
+            <p className="stat-value">{loading ? '…' : stats.totalAppointments}</p>
           </div>
         </div>
       </div>
@@ -66,82 +103,48 @@ const DashboardOverview = ({ doctorData }) => {
       <div className="overview-section">
         <h3>Próximas Citas</h3>
         <div className="appointments-list">
-          {nextAppointments.length > 0 ? (
-            nextAppointments.map((apt) => (
-              <div key={apt.id} className="appointment-item">
-                <div className="appointment-time">
-                  <span className="appointment-icon">⏰</span>
-                  <span className="appointment-hour">{apt.time}</span>
+          {loading ? (
+            <p className="empty-state">Cargando citas…</p>
+          ) : upcoming.length > 0 ? (
+            upcoming.map((apt) => {
+              const patientName = apt.patient?.user
+                ? `${apt.patient.user.first_name} ${apt.patient.user.last_name}`.trim()
+                : `Paciente #${apt.patient?.id || '?'}`;
+              return (
+                <div key={apt.id} className="appointment-item">
+                  <div className="appointment-time">
+                    <AccessTimeIcon fontSize="small" className="appointment-icon" />
+                    <span className="appointment-hour">{formatDateTime(apt.appointment_date)}</span>
+                  </div>
+                  <div className="appointment-details">
+                    <p className="appointment-patient"><PersonIcon fontSize="small" /> {patientName}</p>
+                    <p className="appointment-type">{apt.appointment_type || 'Consulta'}</p>
+                  </div>
+                  <span className={`appointment-status status-${apt.status}`}>{statusLabel(apt.status)}</span>
                 </div>
-                <div className="appointment-details">
-                  <p className="appointment-patient">{apt.patient}</p>
-                  <p className="appointment-type">{apt.type}</p>
-                </div>
-                <button className="appointment-action">Ver</button>
-              </div>
-            ))
+              );
+            })
           ) : (
-            <p className="empty-state">No hay citas programadas</p>
+            <p className="empty-state">No hay citas pendientes</p>
           )}
         </div>
       </div>
 
-      <div className="overview-grid">
-        <div className="overview-section">
-          <h3>Actividad Reciente</h3>
-          <div className="activity-list">
-            <div className="activity-item">
-              <span className="activity-icon">✓</span>
-              <div>
-                <p className="activity-title">Cita completada</p>
-                <p className="activity-description">Con Carlos López</p>
-                <p className="activity-time">hace 2 horas</p>
-              </div>
-            </div>
-            <div className="activity-item">
-              <span className="activity-icon">📝</span>
-              <div>
-                <p className="activity-title">Historial actualizado</p>
-                <p className="activity-description">Paciente: María González</p>
-                <p className="activity-time">hace 4 horas</p>
-              </div>
-            </div>
-            <div className="activity-item">
-              <span className="activity-icon">💬</span>
-              <div>
-                <p className="activity-title">Nuevo mensaje</p>
-                <p className="activity-description">De: Juan Pérez</p>
-                <p className="activity-time">hace 30 minutos</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="overview-section">
-          <h3>Recordatorios</h3>
-          <div className="reminders-list">
-            <div className="reminder-item reminder-high">
-              <span className="reminder-icon">🔴</span>
-              <div>
-                <p className="reminder-title">Cita urgente</p>
-                <p className="reminder-description">En 15 minutos con Dr. Consulta</p>
-              </div>
-            </div>
-            <div className="reminder-item reminder-medium">
-              <span className="reminder-icon">🟡</span>
-              <div>
-                <p className="reminder-title">Preguntar por síntomas</p>
-                <p className="reminder-description">Durante próxima cita de María</p>
-              </div>
-            </div>
-            <div className="reminder-item reminder-low">
-              <span className="reminder-icon">🟢</span>
-              <div>
-                <p className="reminder-title">Seguimiento de paciente</p>
-                <p className="reminder-description">Ana Martinez - el próximo jueves</p>
-              </div>
-            </div>
-          </div>
+      <div className="overview-section quick-actions-section">
+        <h3>Acciones Rápidas</h3>
+        <div className="quick-actions">
+          <button className="quick-action-btn" onClick={() => onNavigate && onNavigate('calendar')}>
+            <TodayIcon /> Ver Calendario
+          </button>
+          <button className="quick-action-btn" onClick={() => onNavigate && onNavigate('availability')}>
+            <AccessTimeIcon /> Disponibilidad
+          </button>
+          <button className="quick-action-btn" onClick={() => onNavigate && onNavigate('profile')}>
+            <PersonIcon /> Editar Perfil
+          </button>
+          <button className="quick-action-btn" onClick={() => onNavigate && onNavigate('messages')}>
+            <MessageIcon /> Mensajes
+          </button>
         </div>
       </div>
     </div>
