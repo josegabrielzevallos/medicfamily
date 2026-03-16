@@ -1,9 +1,404 @@
-.doctor-list {
+/* ═══════════════════════════════════════════════
+   DoctorList — Doctoralia-style layout
+   ═══════════════════════════════════════════════ */
+
+.dl-page {
   min-height: 100vh;
-  background-color: #f8f9fa;
-  padding: 40px 20px;
-  margin-top: 80px;
+  background: #f4f5f7;
+  display: flex;
+  flex-direction: column;
 }
+
+
+/* ── Filter pills bar ── */
+.dl-filterbar {
+  background: white;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 0;
+}
+
+.dl-filterbar-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dl-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dl-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: 1.5px solid #dde1e7;
+  border-radius: 20px;
+  background: white;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.dl-pill:hover {
+  border-color: #1abc9c;
+  color: #1abc9c;
+}
+
+.dl-pill--active {
+  background: #1abc9c;
+  border-color: #1abc9c;
+  color: white;
+}
+
+.dl-result-count {
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Body: list + map ── */
+.dl-body {
+  flex: 1;
+  display: flex;
+  max-width: 1300px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 20px 20px 40px;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* ── Doctor list panel ── */
+.dl-list-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dl-loading,
+.dl-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: #aaa;
+  font-size: 15px;
+}
+
+/* ── Doctor card ── */
+.dl-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.dl-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.11);
+  border-color: #1abc9c;
+}
+
+.dl-card--selected {
+  border-color: #1abc9c;
+  box-shadow: 0 6px 20px rgba(26,188,156,0.15);
+}
+
+.dl-card-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #e8f8f5;
+}
+
+.dl-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dl-card-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1abc9c;
+  background: #e8f8f5;
+}
+
+.dl-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dl-card-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.dl-verified {
+  font-size: 16px !important;
+  color: #1abc9c !important;
+}
+
+.dl-card-specialty {
+  font-size: 13px;
+  color: #1abc9c;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.dl-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.dl-star {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.dl-star--on  { color: #f5a623; }
+.dl-star--off { color: #ddd; }
+
+.dl-rating-val {
+  font-size: 12px;
+  color: #888;
+  margin-left: 4px;
+}
+
+.dl-card-bio {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.45;
+  margin: 4px 0 8px;
+}
+
+.dl-card-address {
+  display: flex;
+  align-items: flex-start;
+  font-size: 12px;
+  color: #999;
+  gap: 0;
+}
+
+.dl-card-address svg {
+  color: #ccc;
+  margin-top: 1px;
+}
+
+/* ── Card slots panel (replaces aside) ── */
+.dl-card-slots {
+  flex-shrink: 0;
+  width: 280px;
+  border-left: 1px solid #f0f0f0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dl-slot-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.dl-slot-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #999;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.dl-slot-tab.active {
+  color: #16a085;
+  border-bottom-color: #16a085;
+}
+
+.dl-slot-days {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.dl-slot-day {
+  flex: 1;
+  min-width: 0;
+}
+
+.dl-slot-day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.dl-slot-day-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #333;
+}
+
+.dl-slot-day-date {
+  font-size: 10px;
+  color: #aaa;
+}
+
+.dl-slot-times {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.dl-slot-chip {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 5px 4px;
+  background: #e8f5f2;
+  color: #16a085;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.dl-slot-chip:hover {
+  background: #1abc9c;
+  color: white;
+}
+
+.dl-slot-none {
+  font-size: 18px;
+  color: #ccc;
+  display: block;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.dl-slots-loading {
+  text-align: center;
+  font-size: 20px;
+  color: #ccc;
+  padding: 16px 0;
+}
+
+.dl-slots-more {
+  background: none;
+  border: none;
+  color: #16a085;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.dl-slots-more:hover { text-decoration: underline; }
+
+/* ── Map panel ── */
+.dl-map-panel {
+  width: 400px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 70px;
+  height: calc(100vh - 70px - 40px);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.dl-map {
+  width: 100%;
+  height: 100%;
+}
+
+.dl-map-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.92);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .dl-body {
+    flex-direction: column;
+  }
+
+  .dl-map-panel {
+    width: 100%;
+    position: static;
+    height: 320px;
+  }
+}
+
+@media (max-width: 600px) {
+  .dl-card {
+    flex-wrap: wrap;
+  }
+
+  .dl-card-slots {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #f0f0f0;
+    padding-left: 0;
+    padding-top: 12px;
+  }
+}
+
 
 .doctor-list__header {
   text-align: center;

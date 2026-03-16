@@ -13,6 +13,10 @@ import DoctorRegister from './pages/DoctorRegister';
 import Admin from './pages/Admin';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PatientRegister from './pages/PatientRegister';
+import PatientProfile from './pages/patient/PatientProfile';
+import PatientDoctors from './pages/patient/PatientDoctors';
+import PatientMedicalHistory from './pages/patient/PatientMedicalHistory';
+import PatientPrescriptions from './pages/patient/PatientPrescriptions';
 
 function AppContent() {
   const location = useLocation();
@@ -33,6 +37,10 @@ function AppContent() {
           <Route path="/register/doctor" element={<DoctorRegister />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+          <Route path="/patient/profile" element={<PatientProfile />} />
+          <Route path="/patient/doctors" element={<PatientDoctors />} />
+          <Route path="/patient/history" element={<PatientMedicalHistory />} />
+          <Route path="/patient/prescriptions" element={<PatientPrescriptions />} />
         </Routes>
       </div>
       {!hideNavbar && <Footer />}

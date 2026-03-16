@@ -141,10 +141,10 @@ const PatientRegister = () => {
         )}
 
         {/* ── Apple (próximamente) ── */}
-        <button type="button" className="pr-social-btn" disabled title="Próximamente">
+        {/* <button type="button" className="pr-social-btn" disabled title="Próximamente">
           <AppleIcon />
           Continuar con Apple
-        </button>
+        </button> */}
 
         {/* ── Divider ── */}
         <div className="pr-divider">o</div>

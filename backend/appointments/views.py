@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.models import User
+from datetime import date, timedelta, datetime as dt_datetime
 
 from .models import (
     Specialty, Doctor, Patient, Availability, Appointment,
@@ -493,18 +494,34 @@ class PatientViewSet(viewsets.ModelViewSet):
         serializer = AppointmentSerializer(appointments, many=True)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get', 'patch'])
     def my_profile(self, request):
-        """Obtiene el perfil del paciente autenticado"""
+        """Obtiene o actualiza el perfil del paciente autenticado"""
         try:
             patient = Patient.objects.get(user=request.user)
+        except Patient.DoesNotExist:
+            return Response({'detail': 'Paciente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.method == 'GET':
             serializer = self.get_serializer(patient)
             return Response(serializer.data)
-        except Patient.DoesNotExist:
-            return Response(
-                {'detail': 'Paciente no encontrado'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+
+        # PATCH — update patient fields + user fields
+        user = request.user
+        user_fields = ['first_name', 'last_name', 'username']
+        for field in user_fields:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+        user.save(update_fields=[f for f in user_fields if f in request.data] or None)
+
+        patient_fields = ['phone', 'date_of_birth', 'blood_type', 'allergies', 'medical_conditions', 'emergency_contact']
+        for field in patient_fields:
+            if field in request.data:
+                setattr(patient, field, request.data[field] or None if field in ['date_of_birth', 'blood_type'] else request.data[field])
+        patient.save()
+
+        serializer = self.get_serializer(patient)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def for_doctor(self, request):
@@ -548,12 +565,94 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
             )
     
     def get_queryset(self):
-        """Filtra disponibilidad por doctor si se proporciona query param"""
+        """Filtra disponibilidad por doctor y/o tipo si se proporcionan query params"""
         queryset = Availability.objects.all()
         doctor_id = self.request.query_params.get('doctor_id', None)
+        appointment_type = self.request.query_params.get('appointment_type', None)
         if doctor_id is not None:
             queryset = queryset.filter(doctor_id=doctor_id)
+        if appointment_type is not None:
+            queryset = queryset.filter(appointment_type=appointment_type)
         return queryset
+
+    def get_permissions(self):
+        if self.action == 'upcoming_slots':
+            return [permissions.AllowAny()]
+        return super().get_permissions()
+
+    @action(detail=False, methods=['get'], url_path='upcoming_slots')
+    def upcoming_slots(self, request):
+        """
+        Devuelve los slots disponibles para los próximos N días de un doctor.
+        Query params: doctor_id (required), appointment_type (default presencial), days (default 3)
+        """
+        doctor_id = request.query_params.get('doctor_id')
+        appt_type = request.query_params.get('appointment_type', 'presencial')
+        try:
+            days_ahead = int(request.query_params.get('days', 3))
+        except (ValueError, TypeError):
+            days_ahead = 3
+
+        if not doctor_id:
+            return Response({'error': 'doctor_id es requerido'}, status=400)
+
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+        except Doctor.DoesNotExist:
+            return Response({'error': 'Doctor no encontrado'}, status=404)
+
+        today = date.today()
+        MONTH_ABBR = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+        result = []
+
+        for i in range(days_ahead):
+            target_date = today + timedelta(days=i)
+            # Python weekday(): 0=Monday … 6=Sunday — same as our model
+            dow = target_date.weekday()
+
+            avail = doctor.availabilities.filter(
+                day_of_week=dow,
+                is_available=True,
+                appointment_type=appt_type,
+            ).first()
+
+            if not avail:
+                day_slots = []
+            else:
+                # Generate 1-hour slots from start_time up to (but not including) end_time
+                slots = []
+                current = dt_datetime.combine(target_date, avail.start_time)
+                end_dt = dt_datetime.combine(target_date, avail.end_time)
+                while current < end_dt:
+                    slots.append(current.strftime('%H:%M'))
+                    current += timedelta(hours=1)
+
+                # Exclude already-booked slots
+                booked_qs = Appointment.objects.filter(
+                    doctor=doctor,
+                    appointment_date__date=target_date,
+                    appointment_type=appt_type,
+                    status__in=['pending', 'confirmed'],
+                ).values_list('appointment_date', flat=True)
+                booked_times = {b.strftime('%H:%M') for b in booked_qs}
+                day_slots = [s for s in slots if s not in booked_times]
+
+            if i == 0:
+                label = 'Hoy'
+            elif i == 1:
+                label = 'Mañana'
+            else:
+                label = f'{target_date.day} {MONTH_ABBR[target_date.month - 1]}'
+
+            result.append({
+                'date': target_date.isoformat(),
+                'label': label,
+                'dow_label': target_date.strftime('%A'),
+                'slots': day_slots,
+            })
+
+        return Response(result)
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):

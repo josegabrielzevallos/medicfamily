@@ -27,6 +27,8 @@ services:
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/.env
     environment:
       - DEBUG=True
       - DB_ENGINE=django.db.backends.postgresql
@@ -36,7 +38,6 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - SECRET_KEY=${SECRET_KEY:-django-insecure-desarrollo-local-cambiar-en-produccion}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
     volumes:
       - ./backend:/app
     depends_on:

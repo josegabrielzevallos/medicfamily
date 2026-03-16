@@ -100,7 +100,7 @@
 }
 
 .pr-input:focus {
-  border-color: #5c9aff;
+  border-color: #1abc9c;
 }
 
 .pr-input.error {
@@ -122,7 +122,7 @@
 }
 
 .pr-eye-btn:hover {
-  color: #5c9aff;
+  color: #1abc9c;
 }
 
 .pr-field-error {
@@ -156,7 +156,7 @@
   height: 17px;
   margin-top: 2px;
   flex-shrink: 0;
-  accent-color: #5c9aff;
+  accent-color: #1abc9c;
   cursor: pointer;
 }
 
@@ -167,7 +167,7 @@
 }
 
 .pr-checkbox-label a {
-  color: #5c9aff;
+  color: #1abc9c;
   text-decoration: none;
 }
 
@@ -179,7 +179,7 @@
 .pr-submit-btn {
   width: 100%;
   padding: 15px;
-  background: #5c9aff;
+  background: #1abc9c;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -191,7 +191,7 @@
 }
 
 .pr-submit-btn:hover:not(:disabled) {
-  background: #4587f5;
+  background: #16a085;
   transform: translateY(-1px);
 }
 
@@ -209,7 +209,7 @@
 }
 
 .pr-terms a {
-  color: #5c9aff;
+  color: #1abc9c;
   text-decoration: none;
 }
 
@@ -226,7 +226,7 @@
 }
 
 .pr-footer-link a {
-  color: #5c9aff;
+  color: #1abc9c;
   font-weight: 600;
   text-decoration: none;
 }

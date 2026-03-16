@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import SaveIcon from '@mui/icons-material/Save';
 import InfoIcon from '@mui/icons-material/Info';
-import SettingsIcon from '@mui/icons-material/Settings';
-import BarChartIcon from '@mui/icons-material/BarChart';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import { availabilityAPI } from '../../api/client';
 import './DoctorAvailability.css';
 
@@ -15,8 +15,17 @@ const defaultSchedule = () =>
     id: null, start_time: '09:00', end_time: '17:00', is_available: d < 5
   }]));
 
+const TABS = [
+  { key: 'presencial', label: 'Presencial', icon: <LocationOnIcon fontSize="small" /> },
+  { key: 'virtual',    label: 'En línea',   icon: <VideocamIcon fontSize="small" /> },
+];
+
 const DoctorAvailability = ({ doctorData }) => {
-  const [schedule, setSchedule] = useState(defaultSchedule());
+  const [activeTab, setActiveTab] = useState('presencial');
+  const [schedules, setSchedules] = useState({
+    presencial: defaultSchedule(),
+    virtual: defaultSchedule(),
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
@@ -25,36 +34,52 @@ const DoctorAvailability = ({ doctorData }) => {
   useEffect(() => {
     if (!doctorData?.doctor_id) return;
     setLoading(true);
-    availabilityAPI.getAll({ doctor_id: doctorData.doctor_id })
-      .then(response => {
-        const records = response.data?.results || response.data || [];
-        const base = defaultSchedule();
-        records.forEach(rec => {
-          const d = rec.day_of_week;
-          base[d] = {
-            id: rec.id,
-            start_time: rec.start_time ? rec.start_time.substring(0, 5) : '09:00',
-            end_time: rec.end_time ? rec.end_time.substring(0, 5) : '17:00',
-            is_available: rec.is_available,
-          };
+
+    Promise.all([
+      availabilityAPI.getAll({ doctor_id: doctorData.doctor_id, appointment_type: 'presencial' }),
+      availabilityAPI.getAll({ doctor_id: doctorData.doctor_id, appointment_type: 'virtual' }),
+    ])
+      .then(([presRes, virtRes]) => {
+        const build = (records) => {
+          const base = defaultSchedule();
+          const list = records.data?.results || records.data || [];
+          list.forEach(rec => {
+            const d = rec.day_of_week;
+            base[d] = {
+              id: rec.id,
+              start_time: rec.start_time ? rec.start_time.substring(0, 5) : '09:00',
+              end_time:   rec.end_time   ? rec.end_time.substring(0, 5)   : '17:00',
+              is_available: rec.is_available,
+            };
+          });
+          return base;
+        };
+        setSchedules({
+          presencial: build(presRes),
+          virtual:    build(virtRes),
         });
-        setSchedule(base);
       })
       .catch(err => console.error('Error loading availability:', err))
       .finally(() => setLoading(false));
   }, [doctorData]);
 
   const handleTimeChange = (dayIdx, field, value) => {
-    setSchedule(prev => ({
+    setSchedules(prev => ({
       ...prev,
-      [dayIdx]: { ...prev[dayIdx], [field]: value },
+      [activeTab]: {
+        ...prev[activeTab],
+        [dayIdx]: { ...prev[activeTab][dayIdx], [field]: value },
+      },
     }));
   };
 
   const handleToggle = (dayIdx) => {
-    setSchedule(prev => ({
+    setSchedules(prev => ({
       ...prev,
-      [dayIdx]: { ...prev[dayIdx], is_available: !prev[dayIdx].is_available },
+      [activeTab]: {
+        ...prev[activeTab],
+        [dayIdx]: { ...prev[activeTab][dayIdx], is_available: !prev[activeTab][dayIdx].is_available },
+      },
     }));
   };
 
@@ -66,6 +91,7 @@ const DoctorAvailability = ({ doctorData }) => {
     setSaving(true);
     setSaveMsg('');
     setSaveError('');
+    const schedule = schedules[activeTab];
     try {
       for (const d of DAY_KEYS) {
         const slot = schedule[d];
@@ -75,13 +101,20 @@ const DoctorAvailability = ({ doctorData }) => {
           start_time: slot.start_time,
           end_time: slot.end_time,
           is_available: slot.is_available,
+          appointment_type: activeTab,
         };
         if (slot.id) {
           const res = await availabilityAPI.update(slot.id, payload);
-          setSchedule(prev => ({ ...prev, [d]: { ...prev[d], id: res.data.id } }));
+          setSchedules(prev => ({
+            ...prev,
+            [activeTab]: { ...prev[activeTab], [d]: { ...prev[activeTab][d], id: res.data.id } },
+          }));
         } else {
           const res = await availabilityAPI.create(payload);
-          setSchedule(prev => ({ ...prev, [d]: { ...prev[d], id: res.data.id } }));
+          setSchedules(prev => ({
+            ...prev,
+            [activeTab]: { ...prev[activeTab], [d]: { ...prev[activeTab][d], id: res.data.id } },
+          }));
         }
       }
       setSaveMsg('Horario guardado correctamente.');
@@ -93,14 +126,30 @@ const DoctorAvailability = ({ doctorData }) => {
     }
   };
 
+  const schedule = schedules[activeTab];
   const activeDays = DAY_KEYS.filter(d => schedule[d].is_available).length;
 
   return (
     <div className="doctor-availability">
       <div className="availability-container">
         <div className="availability-section">
-          <h3>Horarios de Trabajo</h3>
-          <p className="section-description">Configura tu disponibilidad semanal</p>
+          <h3>Horarios de Atención</h3>
+          <p className="section-description">
+            Configura por separado tu disponibilidad presencial y en línea
+          </p>
+
+          {/* Type tabs */}
+          <div className="avail-type-tabs">
+            {TABS.map(tab => (
+              <button
+                key={tab.key}
+                className={`avail-type-tab${activeTab === tab.key ? ' active' : ''}`}
+                onClick={() => { setActiveTab(tab.key); setSaveMsg(''); setSaveError(''); }}
+              >
+                {tab.icon} {tab.label}
+              </button>
+            ))}
+          </div>
 
           {saveMsg && <div className="alert alert-success">{saveMsg}</div>}
           {saveError && <div className="alert alert-error">{saveError}</div>}
@@ -163,34 +212,22 @@ const DoctorAvailability = ({ doctorData }) => {
       <div className="availability-info">
         <div className="info-box">
           <h4><InfoIcon fontSize="small" /> Información</h4>
-          <p>Estos horarios se mostrarán a los pacientes para que puedan agendar citas.</p>
+          <p>
+            Configura tus horarios <strong>Presenciales</strong> y <strong>En línea</strong> por separado.
+            Los pacientes verán los slots disponibles directamente en tu perfil.
+          </p>
         </div>
 
         <div className="info-box">
-          <h4><SettingsIcon fontSize="small" /> Duración de Citas</h4>
-          <div className="duration-settings">
-            <label>Duración estándar:</label>
-            <select className="duration-select">
-              <option>15 minutos</option>
-              <option selected>30 minutos</option>
-              <option>45 minutos</option>
-              <option>60 minutos</option>
-            </select>
-          </div>
+          <h4><LocationOnIcon fontSize="small" /> Presencial</h4>
+          <p>Consultas en tu consultorio. Los slots se calcularán a intervalos de 1 hora.</p>
+          <strong style={{ color: '#16a085' }}>{DAY_KEYS.filter(d => schedules.presencial[d].is_available).length} días activos</strong>
         </div>
 
         <div className="info-box">
-          <h4><BarChartIcon fontSize="small" /> Resumen</h4>
-          <div className="summary-stats">
-            <div className="summary-item">
-              <span>Días activos:</span>
-              <strong>{activeDays} días</strong>
-            </div>
-            <div className="summary-item">
-              <span>Horario predeterminado:</span>
-              <strong>09:00 – 17:00</strong>
-            </div>
-          </div>
+          <h4><VideocamIcon fontSize="small" /> En línea</h4>
+          <p>Consultas virtuales. Puedes tener un horario diferente al presencial.</p>
+          <strong style={{ color: '#16a085' }}>{DAY_KEYS.filter(d => schedules.virtual[d].is_available).length} días activos</strong>
         </div>
       </div>
     </div>

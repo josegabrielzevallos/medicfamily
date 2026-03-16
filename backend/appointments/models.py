@@ -29,6 +29,11 @@ APPOINTMENT_TYPE = [
     ('virtual', 'Virtual'),
 ]
 
+AVAILABILITY_TYPE = [
+    ('presencial', 'Presencial'),
+    ('virtual', 'Virtual'),
+]
+
 
 class Specialty(models.Model):
     """Especialidades médicas disponibles"""
@@ -92,13 +97,18 @@ class Availability(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     is_available = models.BooleanField(default=True)
+    appointment_type = models.CharField(
+        max_length=20,
+        choices=AVAILABILITY_TYPE,
+        default='presencial',
+    )
     
     class Meta:
-        unique_together = ('doctor', 'day_of_week', 'start_time', 'end_time')
+        unique_together = ('doctor', 'day_of_week', 'appointment_type')
     
     def __str__(self):
         days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
-        return f"{self.doctor} - {days[self.day_of_week]} {self.start_time} - {self.end_time}"
+        return f"{self.doctor} - {days[self.day_of_week]} [{self.appointment_type}] {self.start_time} - {self.end_time}"
 
 
 class Appointment(models.Model):

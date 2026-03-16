@@ -69,7 +69,7 @@ class AvailabilitySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Availability
-        fields = ['id', 'doctor', 'doctor_id', 'day_of_week', 'start_time', 'end_time', 'is_available']
+        fields = ['id', 'doctor', 'doctor_id', 'day_of_week', 'start_time', 'end_time', 'is_available', 'appointment_type']
         read_only_fields = ['id', 'doctor']
 
 

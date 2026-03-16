@@ -90,7 +90,7 @@ export const doctorAPI = {
   getMyProfile: () => client.get('/appointments/doctors/my_profile/'),
   getAvailability: (id) => client.get(`/appointments/doctors/${id}/availability/`),
   getRatings: (id) => client.get(`/appointments/doctors/${id}/ratings/`),
-  update: (id, data) => client.put(`/appointments/doctors/${id}/`, data),
+  update: (id, data) => client.patch(`/appointments/doctors/${id}/`, data),
   uploadPhoto: (file) => {
     const formData = new FormData();
     formData.append('photo', file);
@@ -107,6 +107,7 @@ export const patientAPI = {
   getAll: () => client.get('/appointments/patients/'),
   getById: (id) => client.get(`/appointments/patients/${id}/`),
   getMyProfile: () => client.get('/appointments/patients/my_profile/'),
+  updateMyProfile: (data) => client.patch('/appointments/patients/my_profile/', data),
   update: (id, data) => client.put(`/appointments/patients/${id}/`, data),
   forDoctor: (q = '') => client.get('/appointments/patients/for_doctor/', { params: q ? { q } : {} }),
 };
@@ -130,6 +131,7 @@ export const availabilityAPI = {
   create: (data) => client.post('/appointments/availabilities/', data),
   update: (id, data) => client.put(`/appointments/availabilities/${id}/`, data),
   delete: (id) => client.delete(`/appointments/availabilities/${id}/`),
+  getUpcomingSlots: (params) => client.get('/appointments/availabilities/upcoming_slots/', { params }),
 };
 
 // Ratings API

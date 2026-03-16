@@ -1,0 +1,357 @@
+/* ── PatientProfile / Account settings layout ── */
+
+.pac-page {
+  min-height: 100vh;
+  background: #f4f5f7;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top bar ── */
+.pac-topbar {
+  background: white;
+  border-bottom: 1px solid #e8e8e8;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.pac-topbar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pac-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pac-topbar-logo {
+  font-size: 32px !important;
+  color: #1abc9c;
+}
+
+.pac-topbar-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a2e;
+}
+
+.pac-topbar-email {
+  font-size: 12px;
+  color: #888;
+}
+
+.pac-topbar-close {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.pac-topbar-close:hover {
+  background: #e0e0e0;
+}
+
+/* ── Body ── */
+.pac-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  gap: 28px;
+  padding: 32px 24px 60px;
+  flex: 1;
+}
+
+/* ── Sidebar ── */
+.pac-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.pac-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pac-sidebar-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #aaa;
+  padding: 8px 10px 4px;
+}
+
+.pac-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #444;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pac-sidebar-item svg {
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.pac-sidebar-item:hover {
+  background: #eaf7f4;
+  color: #16a085;
+}
+
+.pac-sidebar-item:hover svg {
+  color: #16a085;
+}
+
+.pac-sidebar-item--active {
+  background: #e8f8f5;
+  color: #16a085;
+  font-weight: 600;
+}
+
+.pac-sidebar-item--active svg {
+  color: #16a085;
+}
+
+.pac-sidebar-divider {
+  height: 1px;
+  background: #e8e8e8;
+  margin: 12px 8px;
+}
+
+/* ── Main form card ── */
+.pac-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.pac-loading {
+  text-align: center;
+  padding: 80px 0;
+  color: #888;
+  font-size: 15px;
+}
+
+.pac-form {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 32px 36px 36px;
+}
+
+.pac-form-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 4px;
+}
+
+.pac-form-hint {
+  font-size: 12px;
+  color: #aaa;
+  margin: 0 0 28px;
+}
+
+.pac-error-banner {
+  background: #fff0f0;
+  color: #c0392b;
+  border: 1px solid #f5c6c6;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.pac-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eaf7f4;
+  color: #16a085;
+  border: 1px solid #b2dfdb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+/* ── Field rows ── */
+.pac-field-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+}
+
+.pac-field-row--top {
+  align-items: flex-start;
+  padding-top: 16px;
+}
+
+.pac-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.pac-field-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pac-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #dde1e7;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a2e;
+  background: #fafbfc;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.pac-input:focus {
+  border-color: #1abc9c;
+  background: white;
+}
+
+.pac-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.pac-field-email {
+  gap: 4px;
+}
+
+.pac-email-value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.pac-email-verified {
+  font-size: 12px;
+  color: #16a085;
+  font-weight: 500;
+}
+
+.pac-divider {
+  height: 1px;
+  background: #f0f0f0;
+}
+
+/* ── Actions ── */
+.pac-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.pac-btn-save {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1abc9c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pac-btn-save:hover:not(:disabled) {
+  background: #16a085;
+}
+
+.pac-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pac-btn-cancel {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 11px 12px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.pac-btn-cancel:hover {
+  color: #333;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .pac-body {
+    flex-direction: column;
+    padding: 16px 12px 48px;
+    gap: 16px;
+  }
+
+  .pac-sidebar {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .pac-sidebar-section {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .pac-sidebar-label {
+    width: 100%;
+  }
+
+  .pac-sidebar-divider {
+    width: 100%;
+    margin: 4px 0;
+  }
+
+  .pac-form {
+    padding: 20px 16px 24px;
+  }
+
+  .pac-field-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
