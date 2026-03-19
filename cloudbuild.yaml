@@ -7,12 +7,12 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/medicfamily-backend'
+      - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/medicfamily-backend'
       - './backend'
 
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-backend'
-    args: ['push', 'gcr.io/$PROJECT_ID/medicfamily-backend']
+    args: ['push', '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/medicfamily-backend']
     waitFor: ['build-backend']
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -22,11 +22,11 @@ steps:
       - 'run'
       - 'deploy'
       - 'medicfamily-backend'
-      - '--image=gcr.io/$PROJECT_ID/medicfamily-backend'
-      - '--region=europe-west1'
-      - '--platform=managed'
+      - '--image=${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/medicfamily-backend'
+      - '--region=${_DEPLOY_REGION}'
+      - '--platform=${_PLATFORM}'
       - '--allow-unauthenticated'
-      - '--set-env-vars=^|^DEBUG=False|SECRET_KEY=${_SECRET_KEY}|DB_ENGINE=django.db.backends.postgresql|DB_NAME=${_DB_NAME}|DB_USER=${_DB_USER}|DB_PASSWORD=${_DB_PASSWORD}|DB_HOST=${_DB_HOST}|DB_PORT=5432|ALLOWED_HOSTS=.run.app|GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID}'
+      - '--set-env-vars=^|^DEBUG=False|SECRET_KEY=${_SECRET_KEY}|DB_NAME=${_DB_NAME}|DB_USER=${_DB_USER}|DB_PASSWORD=${_DB_PASSWORD}|DB_HOST=${_DB_HOST}|DB_PORT=5432|ALLOWED_HOSTS=.run.app|GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID}'
       - '--min-instances=0'
       - '--max-instances=5'
     waitFor: ['push-backend']
@@ -39,7 +39,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/medicfamily-frontend'
+      - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/medicfamily-frontend'
       - '--build-arg'
       - 'REACT_APP_API_URL=${_BACKEND_URL}/api'
       - '--build-arg'
@@ -49,7 +49,7 @@ steps:
 
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-frontend'
-    args: ['push', 'gcr.io/$PROJECT_ID/medicfamily-frontend']
+    args: ['push', '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/medicfamily-frontend']
     waitFor: ['build-frontend']
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -59,9 +59,9 @@ steps:
       - 'run'
       - 'deploy'
       - 'medicfamily-frontend'
-      - '--image=gcr.io/$PROJECT_ID/medicfamily-frontend'
-      - '--region=europe-west1'
-      - '--platform=managed'
+      - '--image=${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/medicfamily-frontend'
+      - '--region=${_DEPLOY_REGION}'
+      - '--platform=${_PLATFORM}'
       - '--allow-unauthenticated'
       - '--min-instances=0'
       - '--max-instances=5'
@@ -72,12 +72,18 @@ images:
   - 'gcr.io/$PROJECT_ID/medicfamily-frontend'
 
 substitutions:
+  # Estas variables las sobreescribe el trigger de Cloud Build automaticamente
   _SECRET_KEY: 'cambiar-en-produccion'
   _DB_NAME: 'medicfamily'
   _DB_USER: 'postgres'
-  _DB_PASSWORD: 'admin123'
-  _DB_HOST: '127.0.0.1'  # Cloud SQL usa /cloudsql/INSTANCE_CONNECTION_NAME
+  _DB_PASSWORD: 'cambiar-en-produccion'
+  _DB_HOST: '35.184.169.73'
   _BACKEND_URL: 'https://medicfamily-backend-42291566189.europe-west1.run.app'
+  _DEPLOY_REGION: 'europe-west1'
+  _PLATFORM: 'managed'
+  _AR_HOSTNAME: 'europe-west1-docker.pkg.dev'
+  _AR_PROJECT_ID: 'medicfamily'
+  _AR_REPOSITORY: 'cloud-run-source-deploy'
   _GOOGLE_CLIENT_ID: '42291566189-2p24cnmnjko9je8auqcv1mmavgrrik84.apps.googleusercontent.com'
 
 options:

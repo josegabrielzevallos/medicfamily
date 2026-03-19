@@ -28,3 +28,7 @@ frontend/yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Credenciales de produccion - NO subir a git
+cloudbuild.yaml
+backend/.env

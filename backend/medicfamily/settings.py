@@ -64,14 +64,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'medicfamily.wsgi.application'
 
 # Database
+_db_host = config('DB_HOST', default='localhost')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME', default='medicfamily'),
         'USER': config('DB_USER', default='postgres'),
         'PASSWORD': config('DB_PASSWORD', default='admin123'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+        'HOST': _db_host,
+        # Cloud SQL via Unix socket no usa PORT
+        'PORT': '' if _db_host.startswith('/cloudsql') else config('DB_PORT', default='5432'),
     }
 }
 
