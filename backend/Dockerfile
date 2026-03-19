@@ -24,5 +24,5 @@ RUN python manage.py collectstatic --no-input --settings=medicfamily.settings ||
 # Expose port (Cloud Run inyecta $PORT en runtime)
 EXPOSE 8080
 
-# Ejecuta migraciones y luego arranca gunicorn
-CMD sh -c "python manage.py migrate --no-input && gunicorn medicfamily.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"
+# Ejecuta migraciones (ignora errores si la DB no está lista) y arranca gunicorn
+CMD sh -c "python manage.py migrate --no-input 2>&1 || echo 'WARNING: migrate failed, starting anyway'; gunicorn medicfamily.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"
