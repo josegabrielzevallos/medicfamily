@@ -7,6 +7,10 @@ WORKDIR /app
 ARG REACT_APP_API_URL=http://localhost:8000/api
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
+# Google OAuth Client ID (necesario para login con Google en producción)
+ARG REACT_APP_GOOGLE_CLIENT_ID=
+ENV REACT_APP_GOOGLE_CLIENT_ID=$REACT_APP_GOOGLE_CLIENT_ID
+
 # Copy package files
 COPY package.json package-lock.json* ./
 

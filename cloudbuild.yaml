@@ -26,7 +26,7 @@ steps:
       - '--region=europe-west1'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--set-env-vars=^|^DEBUG=False|SECRET_KEY=${_SECRET_KEY}|DB_ENGINE=django.db.backends.postgresql|DB_NAME=${_DB_NAME}|DB_USER=${_DB_USER}|DB_PASSWORD=${_DB_PASSWORD}|DB_HOST=${_DB_HOST}|DB_PORT=5432|ALLOWED_HOSTS=.run.app'
+      - '--set-env-vars=^|^DEBUG=False|SECRET_KEY=${_SECRET_KEY}|DB_ENGINE=django.db.backends.postgresql|DB_NAME=${_DB_NAME}|DB_USER=${_DB_USER}|DB_PASSWORD=${_DB_PASSWORD}|DB_HOST=${_DB_HOST}|DB_PORT=5432|ALLOWED_HOSTS=.run.app|GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID}'
       - '--min-instances=0'
       - '--max-instances=5'
     waitFor: ['push-backend']
@@ -42,6 +42,8 @@ steps:
       - 'gcr.io/$PROJECT_ID/medicfamily-frontend'
       - '--build-arg'
       - 'REACT_APP_API_URL=${_BACKEND_URL}/api'
+      - '--build-arg'
+      - 'REACT_APP_GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID}'
       - './frontend'
     waitFor: ['deploy-backend']
 
@@ -75,7 +77,8 @@ substitutions:
   _DB_USER: 'postgres'
   _DB_PASSWORD: 'admin123'
   _DB_HOST: '127.0.0.1'  # Cloud SQL usa /cloudsql/INSTANCE_CONNECTION_NAME
-  _BACKEND_URL: 'https://medicfamily-backend-REEMPLAZAR.run.app'
+  _BACKEND_URL: 'https://medicfamily-backend-42291566189.europe-west1.run.app'
+  _GOOGLE_CLIENT_ID: '42291566189-2p24cnmnjko9je8auqcv1mmavgrrik84.apps.googleusercontent.com'
 
 options:
   logging: CLOUD_LOGGING_ONLY
