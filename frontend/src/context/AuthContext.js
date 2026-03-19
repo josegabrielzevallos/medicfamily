@@ -62,9 +62,20 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user');
     const storedToken = localStorage.getItem('access_token');
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-      resetTimer();
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUser(parsed);
+        setToken(storedToken);
+        resetTimer();
+      } catch (e) {
+        // Datos corruptos en localStorage — limpiar para evitar pantalla en blanco
+        localStorage.removeItem('user');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_type');
+      }
     }
   }, []);
 
@@ -73,6 +84,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(username, password);
       const { access, refresh, user: userData } = response.data;
+
+      if (!userData) throw new Error('Respuesta del servidor no contiene datos de usuario');
 
       // Persistir en localStorage
       localStorage.setItem('access_token', access);
@@ -106,6 +119,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.googleLogin(payload);
       const { access, refresh, user: userData } = response.data;
 
+      if (!userData) throw new Error('Respuesta del servidor no contiene datos de usuario');
+
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -130,6 +145,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.register(userData);
       const { access, refresh, user: newUser } = response.data;
+
+      if (!newUser) throw new Error('Respuesta del servidor no contiene datos de usuario');
 
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
