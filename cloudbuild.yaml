@@ -68,8 +68,8 @@ steps:
     waitFor: ['push-frontend']
 
 images:
-  - 'gcr.io/$PROJECT_ID/medicfamily-backend'
-  - 'gcr.io/$PROJECT_ID/medicfamily-frontend'
+  - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/medicfamily-backend'
+  - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/medicfamily-frontend'
 
 substitutions:
   # Estas variables las sobreescribe el trigger de Cloud Build automaticamente
